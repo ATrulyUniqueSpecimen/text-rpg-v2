@@ -37,7 +37,7 @@ export default function Page() {
   const [pendingSlot, setPendingSlot] = useState<number | null>(null);
 
   const [stats, setStats] = useState({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5 });
-  const [gender, setGender] = useState<"male" | "female" | "neither">("male");
+  const [gender, setGender] = useState<"male" | "female" | "other">("male");
   const STAT_POOL = 15; // example, change as you like
 
   const [storyJson, setStoryJson] = useState<any | null>(null);
@@ -102,7 +102,7 @@ export default function Page() {
     return { newLines, newChoices };
   }
 
-  function startFreshInSlot(slot: number, chosenStats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number }, chosenGender: "male" | "female" | "neither") {
+  function startFreshInSlot(slot: number, chosenStats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number }, chosenGender: "male" | "female" | "other") {
     if (!storyJson) return;
 
     const s = new Story(storyJson);
@@ -318,7 +318,8 @@ export default function Page() {
   const ITEM_STATS: Record<string, { STR?: number; CHA?: number; WIT?: number }> = {
     rusty_sword: { STR: 2 },
     leather_armor: { STR: 4 },
-    old_sack: { CHA: -1 },
+    old_sack: { STR: 1, CHA: -1 },
+    small_knife: { STR: 1 },
   };
 
   function calculateAndSetStats(
@@ -355,6 +356,7 @@ export default function Page() {
     rusty_sword: "Rusty Sword",
     leather_armor: "Leather Armor",
     old_sack: "Old Sack",
+    small_knife: "Small Knife",
   };
 
   function pretty(id: string) {
@@ -461,7 +463,7 @@ export default function Page() {
           <div style={{ marginBottom: 16 }}>
             <div style={{ opacity: 0.85, marginBottom: 8 }}>Gender</div>
             <div style={{ display: "flex", gap: 8 }}>
-              {(["male", "female", "neither"] as const).map((g) => (
+              {(["male", "female", "other"] as const).map((g) => (
                 <button
                   key={g}
                   onClick={() => setGender(g)}

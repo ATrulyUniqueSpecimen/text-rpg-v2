@@ -2,6 +2,7 @@ VAR took_coins = false
 VAR took_sword = false
 VAR took_sack = false
 VAR took_armor = false
+VAR took_knife = false
 
 === find_goblin ===
 You come across a goblin in the woods. What do you do?
@@ -41,6 +42,10 @@ You come across a goblin in the woods. What do you do?
 + {not took_armor} [Take leather armor]
     ~ take_item(ITEMS.leather_armor)
     ~ took_armor = true
+    -> loot_goblin
++ {not took_knife} [Take small knife]
+    ~ take_item(ITEMS.small_knife)
+    ~ took_knife = true
     -> loot_goblin
 + [Leave] 
     -> after_goblin

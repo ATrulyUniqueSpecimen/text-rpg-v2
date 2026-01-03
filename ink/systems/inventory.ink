@@ -1,5 +1,5 @@
 // ALL INVENTORY ITEMS MUST BE HERE
-LIST ITEMS = rusty_sword, leather_armor, old_sack, none
+LIST ITEMS = rusty_sword, leather_armor, old_sack, small_knife, none
 VAR inv = ()
 
 VAR eq_weapon = ITEMS.none
@@ -18,25 +18,31 @@ VAR eq_ring = ITEMS.none
         ~ return "armor"
     - ITEMS.old_sack:
         ~ return "outfit"
+    - ITEMS.small_knife:
+        ~ return "weapon"
     - else:
         ~ return "none"
     }
 
 // Helper: Get the bonus for a specific stat from an item
 === function get_item_limit_bonus(item, stat) ===
-    // Define item stats here
     { item:
     - ITEMS.rusty_sword:
-        { stat == "STR":
-             ~ return 2
+        { stat:
+        - "STR": ~ return 2
         }
     - ITEMS.leather_armor:
-        { stat == "STR":
-             ~ return 4
+        { stat:
+        - "STR": ~ return 4
         }
     - ITEMS.old_sack:
-        { stat == "CHA":
-             ~ return -1
+        { stat:
+        - "CHA": ~ return -1
+        - "STR": ~ return 1
+        }
+    - ITEMS.small_knife:
+        { stat:
+        - "STR": ~ return 1
         }
     }
     ~ return 0
@@ -49,6 +55,8 @@ VAR eq_ring = ITEMS.none
         ~ return "Leather armor"
     - ITEMS.old_sack:
         ~ return "Old sack"
+    - ITEMS.small_knife:
+        ~ return "Small knife"
     - else:
         ~ return "{item}"
     }
@@ -59,6 +67,7 @@ VAR eq_ring = ITEMS.none
     + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}] -> item_screen(ITEMS.rusty_sword)
     + { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}] -> item_screen(ITEMS.leather_armor)
     + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}] -> item_screen(ITEMS.old_sack)
+    + { inv ? ITEMS.small_knife } [{item_label(ITEMS.small_knife)}] -> item_screen(ITEMS.small_knife)
     + [Back] ->->
 
 // Generic Item Screen
