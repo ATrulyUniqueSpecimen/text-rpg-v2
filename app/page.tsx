@@ -563,7 +563,7 @@ export default function Page() {
 
                       </div>
 
-                      <span style={{ width: 45, textAlign: "right", fontFamily: "monospace" }}>
+                      <span style={{ width: 60, textAlign: "right", fontFamily: "monospace", whiteSpace: "nowrap", flexShrink: 0 }}>
                         {total} <span style={{ opacity: 0.5, fontSize: 11 }}>({diff >= 0 ? "+" : ""}{diff})</span>
                       </span>
                     </div>
