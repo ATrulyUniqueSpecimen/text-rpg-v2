@@ -4,6 +4,7 @@
 VAR STR_BASE = 0
 VAR CHA_BASE = 0
 VAR WIT_BASE = 0
+VAR char_gender = "male"
 
 // Sum all equipped-slot bonuses that apply to a given stat.
 === function EQUIPPED_STAT_BONUS(stat) ===

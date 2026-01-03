@@ -37,6 +37,7 @@ export default function Page() {
   const [pendingSlot, setPendingSlot] = useState<number | null>(null);
 
   const [stats, setStats] = useState({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5 });
+  const [gender, setGender] = useState<"male" | "female" | "neither">("male");
   const STAT_POOL = 15; // example, change as you like
 
   const [storyJson, setStoryJson] = useState<any | null>(null);
@@ -101,7 +102,7 @@ export default function Page() {
     return { newLines, newChoices };
   }
 
-  function startFreshInSlot(slot: number, chosenStats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number }) {
+  function startFreshInSlot(slot: number, chosenStats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number }, chosenGender: "male" | "female" | "neither") {
     if (!storyJson) return;
 
     const s = new Story(storyJson);
@@ -110,6 +111,7 @@ export default function Page() {
     s.variablesState["STR_BASE"] = chosenStats.STR_BASE;
     s.variablesState["CHA_BASE"] = chosenStats.CHA_BASE;
     s.variablesState["WIT_BASE"] = chosenStats.WIT_BASE;
+    s.variablesState["char_gender"] = chosenGender;
 
     setStory(s);
     setActiveSlot(slot);
@@ -176,12 +178,13 @@ export default function Page() {
   function beginNewGame(slot: number) {
     setPendingSlot(slot);
     setStats({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5 }); // defaults
+    setGender("male"); // default gender
     setMode("stats");
   }
 
   function confirmStats() {
     if (pendingSlot === null) return;
-    startFreshInSlot(pendingSlot, stats);
+    startFreshInSlot(pendingSlot, stats, gender);
     setPendingSlot(null);
   }
 
@@ -305,6 +308,10 @@ export default function Page() {
 
     // Turn ids into display names for your sidebar list
     setUiInventory(invIds.map(pretty));
+
+    const gRaw = asString((s as any).variablesState["char_gender"], "male");
+    setGender(gRaw as any);
+
     calculateAndSetStats(s, eqWraw, eqAraw, eqOraw, eqHraw, eqNraw, eqRraw);
   }
 
@@ -447,8 +454,33 @@ export default function Page() {
           <h1 style={{ marginBottom: 8 }}>Create Character</h1>
 
           <p style={{ marginTop: 0, opacity: 0.8 }}>
-            Distribute {STAT_POOL} points.
+            Choose your appearance and distribute {STAT_POOL} points.
           </p>
+
+          {/* Gender Selector */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ opacity: 0.85, marginBottom: 8 }}>Gender</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {(["male", "female", "neither"] as const).map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setGender(g)}
+                  style={{
+                    padding: "8px 16px",
+                    background: g === gender ? "#4d4dff" : "#333",
+                    border: g === gender ? "2px solid #7d7dff" : "2px solid #555",
+                    borderRadius: 6,
+                    color: "#fff",
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    textTransform: "capitalize"
+                  }}
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <StatEditor
             stats={stats}
@@ -582,7 +614,7 @@ export default function Page() {
                   transform: "translate(-50%, -50%)",
                   width: 200,
                   height: 480,
-                  backgroundImage: 'url("/assets/body_silhouette.png")',
+                  backgroundImage: `url(${gender === "female" ? "/assets/body_silhouette_female.png" : "/assets/body_silhouette.png"})`,
                   backgroundSize: "contain",
                   backgroundRepeat: "no-repeat",
                   backgroundPosition: "center",
