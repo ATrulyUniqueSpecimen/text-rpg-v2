@@ -18,7 +18,17 @@ export default function Page() {
   const [uiEquippedHat, setUiEquippedHat] = useState("none");
   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+
   const [uiInventory, setUiInventory] = useState<string[]>([]);
+  const [uiStats, setUiStats] = useState<{
+    STR: { base: number; total: number };
+    CHA: { base: number; total: number };
+    WIT: { base: number; total: number };
+  }>({
+    STR: { base: 0, total: 0 },
+    CHA: { base: 0, total: 0 },
+    WIT: { base: 0, total: 0 },
+  });
 
   const [mode, setMode] = useState<Mode>("menu");
   const [pendingSlot, setPendingSlot] = useState<number | null>(null);
@@ -264,6 +274,42 @@ export default function Page() {
 
     // Turn ids into display names for your sidebar list
     setUiInventory(invIds.map(pretty));
+    calculateAndSetStats(s, eqWraw, eqAraw, eqOraw, eqHraw, eqNraw, eqRraw);
+  }
+
+  const ITEM_STATS: Record<string, { STR?: number; CHA?: number; WIT?: number }> = {
+    rusty_sword: { STR: 2 },
+    leather_armor: { STR: 4 },
+    old_sack: { CHA: -1 },
+  };
+
+  function calculateAndSetStats(
+    s: Story,
+    ...equippedRaw: string[]
+  ) {
+    const baseSTR = asNumber((s as any).variablesState["STR_BASE"], 0);
+    const baseCHA = asNumber((s as any).variablesState["CHA_BASE"], 0);
+    const baseWIT = asNumber((s as any).variablesState["WIT_BASE"], 0);
+
+    let bonusSTR = 0;
+    let bonusCHA = 0;
+    let bonusWIT = 0;
+
+    equippedRaw.forEach(raw => {
+      const id = normalizeItemId(raw);
+      const stats = ITEM_STATS[id];
+      if (stats) {
+        bonusSTR += stats.STR ?? 0;
+        bonusCHA += stats.CHA ?? 0;
+        bonusWIT += stats.WIT ?? 0;
+      }
+    });
+
+    setUiStats({
+      STR: { base: baseSTR, total: baseSTR + bonusSTR },
+      CHA: { base: baseCHA, total: baseCHA + bonusCHA },
+      WIT: { base: baseWIT, total: baseWIT + bonusWIT },
+    });
   }
 
   const ITEM_NAMES: Record<string, string> = {
@@ -448,6 +494,22 @@ export default function Page() {
               <div style={{ marginBottom: 12 }}>
                 <div style={{ opacity: 0.75, fontSize: 13 }}>Coins</div>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{uiCoins}</div>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ opacity: 0.75, fontSize: 13, marginBottom: 6 }}>Stats</div>
+                {(["STR", "CHA", "WIT"] as const).map(stat => {
+                  const { base, total } = uiStats[stat];
+                  const diff = total - base;
+                  return (
+                    <div key={stat} style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 2 }}>
+                      <span style={{ fontWeight: 600, width: 30 }}>{stat}</span>
+                      <span>
+                        {total} <span style={{ opacity: 0.5, fontSize: 12 }}>({base}{diff >= 0 ? "+" : ""}{diff})</span>
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div style={{ marginBottom: 12 }}>
