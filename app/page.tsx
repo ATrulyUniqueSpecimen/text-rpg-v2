@@ -571,118 +571,174 @@ export default function Page() {
                 })}
               </div>
 
-              <div style={{ marginBottom: 24, position: "relative", height: 320, background: "rgba(0,0,0,0.2)", borderRadius: 12, overflow: "hidden" }}>
-                {/* Body Silhouette */}
+              <div style={{ marginBottom: 24, position: "relative", height: 280, borderRadius: 12, overflow: "visible" }}>
+                {/* Body Silhouette - with mix-blend-mode to hide white bg */}
                 <div style={{
                   position: "absolute",
                   left: "50%",
                   top: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: 120,
-                  height: 280,
+                  width: 100,
+                  height: 240,
                   backgroundImage: 'url("/assets/body_silhouette.png")',
                   backgroundSize: "contain",
                   backgroundRepeat: "no-repeat",
                   backgroundPosition: "center",
-                  opacity: 0.8,
+                  opacity: 0.6,
+                  mixBlendMode: "multiply",
+                  filter: "invert(1)",
                   zIndex: 0
                 }} />
 
                 {/* Connector Lines SVG */}
-                <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.5, zIndex: 1 }}>
-                  {/* Hat -> Head */}
-                  <line x1={200} y1={54} x2={130} y2={40} stroke="white" strokeWidth="1" />
-                  {/* Necklace -> Neck */}
-                  <line x1={200} y1={104} x2={130} y2={60} stroke="white" strokeWidth="1" />
-                  {/* Outfit -> Chest */}
-                  <line x1={88} y1={104} x2={130} y2={90} stroke="white" strokeWidth="1" />
-                  {/* Armor -> Chest */}
-                  <line x1={88} y1={164} x2={130} y2={100} stroke="white" strokeWidth="1" />
-                  {/* Weapon -> Hand R */}
-                  <line x1={200} y1={184} x2={170} y2={150} stroke="white" strokeWidth="1" />
-                  {/* Ring -> Finger R */}
-                  <line x1={200} y1={244} x2={175} y2={160} stroke="white" strokeWidth="1" />
+                <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.4, zIndex: 1 }}>
+                  <line x1={190} y1={24} x2={130} y2={30} stroke="white" strokeWidth="1" />
+                  <line x1={190} y1={74} x2={130} y2={55} stroke="white" strokeWidth="1" />
+                  <line x1={70} y1={74} x2={130} y2={70} stroke="white" strokeWidth="1" />
+                  <line x1={70} y1={134} x2={130} y2={90} stroke="white" strokeWidth="1" />
+                  <line x1={190} y1={134} x2={160} y2={115} stroke="white" strokeWidth="1" />
+                  <line x1={190} y1={194} x2={160} y2={130} stroke="white" strokeWidth="1" />
                 </svg>
 
-                {/* Slots Wrapper */}
-                {/* Helper for slots */}
+                {/* Equipment Slots */}
                 {(
                   [
-                    { id: "hat", label: "Hat", icon: "/assets/icon_hat.png", x: 200, y: 30, slot: uiEquippedHat },
-                    { id: "necklace", label: "Necklace", icon: "/assets/icon_necklace.png", x: 200, y: 80, slot: uiEquippedNecklace },
-                    { id: "outfit", label: "Outfit", icon: "/assets/icon_outfit.png", x: 40, y: 80, slot: uiEquippedOutfit },
-                    { id: "armor", label: "Armor", icon: "/assets/icon_armor.png", x: 40, y: 140, slot: uiEquippedArmor },
-                    { id: "weapon", label: "Weapon", icon: "/assets/icon_weapon.png", x: 200, y: 160, slot: uiEquippedWeapon },
-                    { id: "ring", label: "Ring", icon: null, x: 200, y: 220, slot: uiEquippedRing },
+                    { id: "hat", label: "Hat", icon: "/assets/icon_hat.png", x: 190, y: 0, slot: uiEquippedHat },
+                    { id: "necklace", label: "Necklace", icon: "/assets/icon_necklace.png", x: 190, y: 50, slot: uiEquippedNecklace },
+                    { id: "outfit", label: "Outfit", icon: "/assets/icon_outfit.png", x: 6, y: 50, slot: uiEquippedOutfit },
+                    { id: "armor", label: "Armor", icon: "/assets/icon_armor.png", x: 6, y: 110, slot: uiEquippedArmor },
+                    { id: "weapon", label: "Weapon", icon: "/assets/icon_weapon.png", x: 190, y: 110, slot: uiEquippedWeapon },
+                    { id: "ring", label: "Ring", icon: null, x: 190, y: 170, slot: uiEquippedRing },
                   ] as const
                 ).map((item) => {
                   const isEquipped = item.slot !== "none";
                   const isRing = item.id === "ring";
+                  const displayName = isEquipped ? pretty(item.slot) : "Empty";
 
                   return (
                     <div
                       key={item.id}
-                      title={isEquipped ? pretty(item.slot) : "Empty"}
+                      className="equipment-slot"
                       style={{
                         position: "absolute",
                         left: item.x,
                         top: item.y,
-                        width: 48,
-                        height: 48,
-                        background: "#222",
-                        border: `2px solid ${isEquipped ? "#4d4dff" : "#444"}`,
-                        borderRadius: 8,
+                        width: 52,
+                        height: 52,
+                        background: "transparent",
+                        border: `2px solid ${isEquipped ? "rgba(77,77,255,0.8)" : "rgba(255,255,255,0.2)"}`,
+                        borderRadius: 10,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        cursor: "help",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.5)"
+                        cursor: "pointer",
+                        zIndex: 2,
+                        transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                        boxShadow: isEquipped ? "0 0 8px rgba(77,77,255,0.4)" : "none"
                       }}
                     >
-                      {/* Icon Logic */}
-                      {isEquipped ? (
-                        // Equipped State: Gradient on Black -> Mix Blend Lighten -> Colored Icon on White
-                        // Wait, if I want colored icon on DARK background...
-                        // mix-blend-mode lighten against white bg makes white.
-                        // I want the icon to be visible.
+                      {/* Custom Tooltip */}
+                      <span
+                        className="slot-tooltip"
+                        style={{
+                          position: "absolute",
+                          bottom: "calc(100% + 8px)",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          background: "rgba(30,30,40,0.95)",
+                          color: isEquipped ? "#fff" : "#888",
+                          padding: "6px 10px",
+                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 500,
+                          whiteSpace: "nowrap",
+                          opacity: 0,
+                          pointerEvents: "none",
+                          transition: "opacity 0.15s ease",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          zIndex: 10
+                        }}
+                      >
+                        {displayName}
+                      </span>
 
-                        // Let's try: Gradient Div. Mask Image = Icon.
-                        // Since mask luminance of Black Icon on White BG = Show BG, Hide Icon.
-                        // Invert mask?
-                        // Simple solution for now: Show basic icon or colorized div.
+                      {/* Icon with gradient fill animation */}
+                      <div style={{
+                        width: "100%",
+                        height: "100%",
+                        position: "relative",
+                        overflow: "hidden",
+                        borderRadius: 8
+                      }}>
+                        {/* Empty State Icon (always rendered, fades out when equipped) */}
+                        {!isRing && (
+                          <img
+                            src={item.icon!}
+                            alt={item.id}
+                            style={{
+                              position: "absolute",
+                              top: "10%",
+                              left: "10%",
+                              width: "80%",
+                              height: "80%",
+                              objectFit: "contain",
+                              opacity: isEquipped ? 0 : 0.3,
+                              filter: "invert(1)",
+                              transition: "opacity 0.3s ease"
+                            }}
+                          />
+                        )}
+                        {isRing && !isEquipped && (
+                          <div style={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            width: 20,
+                            height: 20,
+                            border: "3px solid rgba(255,255,255,0.25)",
+                            borderRadius: "50%"
+                          }} />
+                        )}
 
+                        {/* Equipped State: Gradient-filled icon */}
                         <div style={{
-                          width: "100%", height: "100%",
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
                           background: "linear-gradient(180deg, #ff4d4d, #4d4dff)",
                           maskImage: isRing
-                            ? "radial-gradient(transparent 42%, black 44%, black 62%, transparent 64%)"
+                            ? "radial-gradient(transparent 38%, black 42%, black 58%, transparent 62%)"
                             : `url(${item.icon})`,
                           WebkitMaskImage: isRing
-                            ? "radial-gradient(transparent 42%, black 44%, black 62%, transparent 64%)"
+                            ? "radial-gradient(transparent 38%, black 42%, black 58%, transparent 62%)"
                             : `url(${item.icon})`,
-                          maskSize: isRing ? undefined : "contain",
-                          WebkitMaskSize: isRing ? undefined : "contain",
+                          maskSize: "70%",
+                          WebkitMaskSize: "70%",
                           maskRepeat: "no-repeat",
                           WebkitMaskRepeat: "no-repeat",
                           maskPosition: "center",
                           WebkitMaskPosition: "center",
-                          maskMode: isRing ? undefined : "luminance"
+                          opacity: isEquipped ? 1 : 0,
+                          transform: isEquipped ? "translateY(0)" : "translateY(100%)",
+                          transition: "opacity 0.3s ease, transform 0.3s ease"
                         }} />
-                      ) : (
-                        // Empty State: Simple Image
-                        isRing ? (
-                          <div style={{ width: 20, height: 20, border: "3px solid #555", borderRadius: "50%" }} />
-                        ) : (
-                          <img
-                            src={item.icon!}
-                            alt={item.id}
-                            style={{ width: "80%", height: "80%", objectFit: "contain", opacity: 0.3, filter: "invert(1)" }}
-                          />
-                        )
-                      )}
+                      </div>
                     </div>
                   );
                 })}
+
+                {/* CSS for hover tooltips */}
+                <style>{`
+                  .equipment-slot:hover .slot-tooltip {
+                    opacity: 1 !important;
+                  }
+                  .equipment-slot:hover {
+                    border-color: rgba(255,255,255,0.5) !important;
+                  }
+                `}</style>
               </div>
 
               <div>

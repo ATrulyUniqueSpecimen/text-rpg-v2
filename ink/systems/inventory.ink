@@ -62,73 +62,83 @@ You check what you're carrying.
     + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}] -> item_screen(ITEMS.old_sack)
     + [Back] ->->
 
+// Helper: Format stat bonus string for button display (e.g., "(+4 STR)")
+=== function format_stat_bonus(item) ===
+    ~ temp str_bonus = get_item_limit_bonus(item, "STR")
+    ~ temp cha_bonus = get_item_limit_bonus(item, "CHA")
+    ~ temp wit_bonus = get_item_limit_bonus(item, "WIT")
+    
+    // Return the first non-zero bonus found
+    { str_bonus > 0:
+        ~ return "(+{str_bonus} STR)"
+    }
+    { str_bonus < 0:
+        ~ return "({str_bonus} STR)"
+    }
+    { cha_bonus > 0:
+        ~ return "(+{cha_bonus} CHA)"
+    }
+    { cha_bonus < 0:
+        ~ return "({cha_bonus} CHA)"
+    }
+    { wit_bonus > 0:
+        ~ return "(+{wit_bonus} WIT)"
+    }
+    { wit_bonus < 0:
+        ~ return "({wit_bonus} WIT)"
+    }
+    ~ return ""
+
 // Generic Item Screen
 === item_screen(item) ===
 ~ temp slot = get_item_slot(item)
-You look at your {item_label(item)}.
-
-{ slot != "none":
-    It fits in the {slot} slot.
-    // Display stats if any - crude check or just generic info
-    ~ temp str_bonus = get_item_limit_bonus(item, "STR")
-    ~ temp cha_bonus = get_item_limit_bonus(item, "CHA")
-    { str_bonus != 0: (STR {str_bonus}) }
-    { cha_bonus != 0: (CHA {cha_bonus}) }
-- else:
-    It's not equippable.
-}
+~ temp stat_suffix = format_stat_bonus(item)
 
 { slot == "weapon":
     { eq_weapon == item:
-        It's currently equipped.
         + [Unequip] -> do_unequip_weapon(item)
     - else:
-        + [Equip] -> do_equip_weapon(item)
+        + [Equip {stat_suffix}] -> do_equip_weapon(item)
     }
 }
 
 { slot == "armor":
     { eq_armor == item:
-        It's currently equipped.
         + [Unequip] -> do_unequip_armor(item)
     - else:
-        + [Equip] -> do_equip_armor(item)
+        + [Equip {stat_suffix}] -> do_equip_armor(item)
     }
 }
-// Expand for other slots (outfit, hat, etc)
+
 { slot == "outfit":
     { eq_outfit == item:
-        It's currently equipped.
         + [Unequip] -> do_unequip_outfit(item)
     - else:
-        + [Equip] -> do_equip_outfit(item)
+        + [Equip {stat_suffix}] -> do_equip_outfit(item)
     }
 }
 
 { slot == "hat":
     { eq_hat == item:
-        It's currently equipped.
         + [Unequip] -> do_unequip_hat(item)
     - else:
-        + [Equip] -> do_equip_hat(item)
+        + [Equip {stat_suffix}] -> do_equip_hat(item)
     }
 }
 
 { slot == "necklace":
     { eq_necklace == item:
-        It's currently equipped.
         + [Unequip] -> do_unequip_necklace(item)
     - else:
-        + [Equip] -> do_equip_necklace(item)
+        + [Equip {stat_suffix}] -> do_equip_necklace(item)
     }
 }
 
 { slot == "ring":
     { eq_ring == item:
-        It's currently equipped.
         + [Unequip] -> do_unequip_ring(item)
     - else:
-        + [Equip] -> do_equip_ring(item)
+        + [Equip {stat_suffix}] -> do_equip_ring(item)
     }
 }
 
