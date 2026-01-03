@@ -71,7 +71,7 @@ You check what you're carrying.
 
 { slot == "weapon":
     { eq_weapon == item:
-        + [Unequip] -> do_unequip_weapon(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_weapon(item)
     - else:
         + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_weapon(item)
     }
@@ -79,7 +79,7 @@ You check what you're carrying.
 
 { slot == "armor":
     { eq_armor == item:
-        + [Unequip] -> do_unequip_armor(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_armor(item)
     - else:
         + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_armor(item)
     }
@@ -87,7 +87,7 @@ You check what you're carrying.
 
 { slot == "outfit":
     { eq_outfit == item:
-        + [Unequip] -> do_unequip_outfit(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_outfit(item)
     - else:
         + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_outfit(item)
     }
@@ -95,7 +95,7 @@ You check what you're carrying.
 
 { slot == "hat":
     { eq_hat == item:
-        + [Unequip] -> do_unequip_hat(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_hat(item)
     - else:
         + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_hat(item)
     }
@@ -103,7 +103,7 @@ You check what you're carrying.
 
 { slot == "necklace":
     { eq_necklace == item:
-        + [Unequip] -> do_unequip_necklace(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_necklace(item)
     - else:
         + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_necklace(item)
     }
@@ -111,7 +111,7 @@ You check what you're carrying.
 
 { slot == "ring":
     { eq_ring == item:
-        + [Unequip] -> do_unequip_ring(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_ring(item)
     - else:
         + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_ring(item)
     }
