@@ -14,6 +14,10 @@ export default function Page() {
   const [uiCoins, setUiCoins] = useState(0);
   const [uiEquippedWeapon, setUiEquippedWeapon] = useState("none");
   const [uiEquippedArmor, setUiEquippedArmor] = useState("none");
+  const [uiEquippedOutfit, setUiEquippedOutfit] = useState("none");
+  const [uiEquippedHat, setUiEquippedHat] = useState("none");
+  const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
+  const [uiEquippedRing, setUiEquippedRing] = useState("none");
   const [uiInventory, setUiInventory] = useState<string[]>([]);
 
   const [mode, setMode] = useState<Mode>("menu");
@@ -242,10 +246,18 @@ export default function Page() {
 
     const eqWraw = asString((s as any).variablesState["eq_weapon"], "none");
     const eqAraw = asString((s as any).variablesState["eq_armor"], "none");
+    const eqOraw = asString((s as any).variablesState["eq_outfit"], "none");
+    const eqHraw = asString((s as any).variablesState["eq_hat"], "none");
+    const eqNraw = asString((s as any).variablesState["eq_necklace"], "none");
+    const eqRraw = asString((s as any).variablesState["eq_ring"], "none");
 
     // normalize "ITEMS.rusty_sword" -> "rusty_sword"
     setUiEquippedWeapon(normalizeItemId(eqWraw));
     setUiEquippedArmor(normalizeItemId(eqAraw));
+    setUiEquippedOutfit(normalizeItemId(eqOraw));
+    setUiEquippedHat(normalizeItemId(eqHraw));
+    setUiEquippedNecklace(normalizeItemId(eqNraw));
+    setUiEquippedRing(normalizeItemId(eqRraw));
 
     const invVal = (s as any).variablesState["inv"];
     const invIds = inkListToIds(invVal);
@@ -420,6 +432,10 @@ export default function Page() {
                 <div style={{ opacity: 0.75, fontSize: 13, marginBottom: 4 }}>Equipped</div>
                 <div style={{ fontSize: 14 }}>Weapon: {pretty(uiEquippedWeapon)}</div>
                 <div style={{ fontSize: 14 }}>Armor: {pretty(uiEquippedArmor)}</div>
+                <div style={{ fontSize: 14 }}>Outfit: {pretty(uiEquippedOutfit)}</div>
+                <div style={{ fontSize: 14 }}>Hat: {pretty(uiEquippedHat)}</div>
+                <div style={{ fontSize: 14 }}>Necklace: {pretty(uiEquippedNecklace)}</div>
+                <div style={{ fontSize: 14 }}>Ring: {pretty(uiEquippedRing)}</div>
               </div>
 
               <div>

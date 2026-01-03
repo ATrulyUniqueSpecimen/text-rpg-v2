@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/nsnih/text-rpg-v2/app/globals.css"],"sourcesContent":["body {\r\n  margin: 0;\r\n  padding: 0;\r\n  font-family: system-ui, -apple-system, sans-serif;\r\n  background-color: #111;\r\n  color: #eee;\r\n}\r\n\r\nbutton {\r\n  cursor: pointer;\r\n  padding: 8px 16px;\r\n  font-size: 14px;\r\n  background: #333;\r\n  color: #fff;\r\n  border: 1px solid #555;\r\n  border-radius: 4px;\r\n  transition: background 0.2s;\r\n}\r\n\r\nbutton:hover {\r\n  background: #444;\r\n}\r\n\r\nbutton:disabled {\r\n  opacity: 0.5;\r\n  cursor: not-allowed;\r\n}\r\n\r\na {\r\n  color: inherit;\r\n  text-decoration: none;\r\n}\r\n"],"names":[],"mappings":"AAAA;;;;;;;;AAQA;;;;;;;;;;;AAWA;;;;AAIA;;;;;AAKA"}}]
+}

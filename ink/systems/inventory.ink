@@ -57,10 +57,10 @@ VAR eq_ring = ITEMS.none
 You check what you're carrying.
 // Iterate over all items in the inventory
 // Note: Ink lists are sets. We check availability.
-    * { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}] -> item_screen(ITEMS.rusty_sword)
-    * { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}] -> item_screen(ITEMS.leather_armor)
-    * { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}] -> item_screen(ITEMS.old_sack)
-    * [Back] ->->
+    + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}] -> item_screen(ITEMS.rusty_sword)
+    + { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}] -> item_screen(ITEMS.leather_armor)
+    + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}] -> item_screen(ITEMS.old_sack)
+    + [Back] ->->
 
 // Generic Item Screen
 === item_screen(item) ===
@@ -81,24 +81,59 @@ You look at your {item_label(item)}.
 { slot == "weapon":
     { eq_weapon == item:
         It's currently equipped.
-        * [Unequip] -> do_unequip_weapon(item)
+        + [Unequip] -> do_unequip_weapon(item)
     - else:
-        * [Equip] -> do_equip_weapon(item)
+        + [Equip] -> do_equip_weapon(item)
     }
 }
 
 { slot == "armor":
     { eq_armor == item:
         It's currently equipped.
-        * [Unequip] -> do_unequip_armor(item)
+        + [Unequip] -> do_unequip_armor(item)
     - else:
-        * [Equip] -> do_equip_armor(item)
+        + [Equip] -> do_equip_armor(item)
     }
 }
-// Expand for other slots (outfit, hat, etc) as needed, keeping it simple for now as per original file scope
+// Expand for other slots (outfit, hat, etc)
+{ slot == "outfit":
+    { eq_outfit == item:
+        It's currently equipped.
+        + [Unequip] -> do_unequip_outfit(item)
+    - else:
+        + [Equip] -> do_equip_outfit(item)
+    }
+}
 
-* [Drop] -> do_drop(item)
-* [Back] ->->
+{ slot == "hat":
+    { eq_hat == item:
+        It's currently equipped.
+        + [Unequip] -> do_unequip_hat(item)
+    - else:
+        + [Equip] -> do_equip_hat(item)
+    }
+}
+
+{ slot == "necklace":
+    { eq_necklace == item:
+        It's currently equipped.
+        + [Unequip] -> do_unequip_necklace(item)
+    - else:
+        + [Equip] -> do_equip_necklace(item)
+    }
+}
+
+{ slot == "ring":
+    { eq_ring == item:
+        It's currently equipped.
+        + [Unequip] -> do_unequip_ring(item)
+    - else:
+        + [Equip] -> do_equip_ring(item)
+    }
+}
+
++ [Drop] -> do_drop(item)
++ [Back] ->->
 
 
 === do_equip_weapon(item) ===
@@ -121,6 +156,46 @@ You put it on.
 You take it off.
 ->->
 
+=== do_equip_outfit(item) ===
+~ eq_outfit = item
+You put it on.
+->->
+
+=== do_unequip_outfit(item) ===
+~ eq_outfit = ITEMS.none
+You take it off.
+->->
+
+=== do_equip_hat(item) ===
+~ eq_hat = item
+You put it on.
+->->
+
+=== do_unequip_hat(item) ===
+~ eq_hat = ITEMS.none
+You take it off.
+->->
+
+=== do_equip_necklace(item) ===
+~ eq_necklace = item
+You put it on.
+->->
+
+=== do_unequip_necklace(item) ===
+~ eq_necklace = ITEMS.none
+You take it off.
+->->
+
+=== do_equip_ring(item) ===
+~ eq_ring = item
+You put it on.
+->->
+
+=== do_unequip_ring(item) ===
+~ eq_ring = ITEMS.none
+You take it off.
+->->
+
 === do_drop(item) ===
 // Auto-unequip if dropped
 { eq_weapon == item:
@@ -128,6 +203,18 @@ You take it off.
 }
 { eq_armor == item:
     ~ eq_armor = ITEMS.none
+}
+{ eq_outfit == item:
+    ~ eq_outfit = ITEMS.none
+}
+{ eq_hat == item:
+    ~ eq_hat = ITEMS.none
+}
+{ eq_necklace == item:
+    ~ eq_necklace = ITEMS.none
+}
+{ eq_ring == item:
+    ~ eq_ring = ITEMS.none
 }
 // Add other slots logic here if expanded
 
