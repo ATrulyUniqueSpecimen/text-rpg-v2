@@ -530,11 +530,41 @@ export default function Page() {
                 {(["STR", "CHA", "WIT"] as const).map(stat => {
                   const { base, total } = uiStats[stat];
                   const diff = total - base;
+
+                  // specific color stops could be tweaked, but standard red->blue covers the range nicely
+                  const fillPercent = Math.min(100, Math.max(0, (total / 20) * 100));
+                  const basePercent = Math.min(100, Math.max(0, (base / 20) * 100));
+
                   return (
-                    <div key={stat} style={{ display: "flex", justifyContent: "space-between", fontSize: 14, marginBottom: 2 }}>
-                      <span style={{ fontWeight: 600, width: 30 }}>{stat}</span>
-                      <span>
-                        {total} <span style={{ opacity: 0.5, fontSize: 12 }}>({base}{diff >= 0 ? "+" : ""}{diff})</span>
+                    <div key={stat} style={{ display: "flex", alignItems: "center", fontSize: 13, marginBottom: 6 }}>
+                      <span style={{ fontWeight: 600, width: 32 }}>{stat}</span>
+
+                      {/* Bar Container */}
+                      <div style={{ flex: 1, height: 8, background: "rgba(255,255,255,0.1)", borderRadius: 4, marginRight: 8, marginLeft: 4, position: "relative", overflow: "hidden" }}>
+
+                        {/* Gradient Fill */}
+                        <div style={{
+                          width: `${fillPercent}%`,
+                          height: "100%",
+                          background: "linear-gradient(90deg, #ff4d4d, #4d4dff)",
+                          transition: "width 0.3s ease"
+                        }} />
+
+                        {/* Base Marker */}
+                        <div style={{
+                          position: "absolute",
+                          left: `${basePercent}%`,
+                          top: 0,
+                          bottom: 0,
+                          width: 2,
+                          background: "rgba(255,255,255,0.8)",
+                          boxShadow: "0 0 2px rgba(0,0,0,0.5)"
+                        }} />
+
+                      </div>
+
+                      <span style={{ width: 45, textAlign: "right", fontFamily: "monospace" }}>
+                        {total} <span style={{ opacity: 0.5, fontSize: 11 }}>({diff >= 0 ? "+" : ""}{diff})</span>
                       </span>
                     </div>
                   );
