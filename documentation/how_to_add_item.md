@@ -64,6 +64,14 @@ Here is the step-by-step process to add a new item to the game.
         }
     ```
 
+6.  **Update Generic Looting**: Add the item as a choice in the `loot_npc` knot in `ink/systems/npcs.ink`.
+    ```ink
+    + {npc_inv ? ITEMS.ring_of_intelligence} [Take {item_label(ITEMS.ring_of_intelligence)}]
+        ~ take_item(ITEMS.ring_of_intelligence)
+        ~ set_npc_inv(npc, npc_inv - ITEMS.ring_of_intelligence)
+        -> loot_npc(npc)
+    ```
+
 ## 2. Update Frontend (`app/page.tsx`)
 
 1.  **Pretty Name**: Add the mapping to `ITEM_NAMES` so it looks good in the sidebar.
