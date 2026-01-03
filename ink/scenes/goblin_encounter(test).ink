@@ -61,4 +61,5 @@ The goblin takes your coins and leaves.
     -> after_goblin
 + [Move on]
   You continue down the trail...
-  ->->
+  + [Continue]
+      ->->
