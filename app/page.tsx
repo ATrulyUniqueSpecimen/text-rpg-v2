@@ -53,43 +53,45 @@ export default function Page() {
     setSlotHasSave(readSlotPresence());
   }
 
-  function saveToSlot(s: Story, slot: number) {
+  function saveToSlot(s: Story, slot: number, currentLines: string[]) {
     localStorage.setItem(SAVE_KEYS[slot], s.state.toJson());
+    localStorage.setItem(SAVE_KEYS[slot] + "_transcript", JSON.stringify(currentLines));
     localStorage.setItem(ACTIVE_SLOT_KEY, String(slot));
     refreshSlotPresence();
   }
 
-  function loadFromSlot(s: Story, slot: number): boolean {
+  function loadFromSlot(s: Story, slot: number): { ok: boolean; loadedLines: string[] } {
     const saved = localStorage.getItem(SAVE_KEYS[slot]);
-    if (!saved) return false;
+    const savedTranscript = localStorage.getItem(SAVE_KEYS[slot] + "_transcript");
+
+    if (!saved) return { ok: false, loadedLines: [] };
+
     try {
       s.state.LoadJson(saved);
-      return true;
+      const lines = savedTranscript ? JSON.parse(savedTranscript) : [];
+      return { ok: true, loadedLines: lines };
     } catch {
       localStorage.removeItem(SAVE_KEYS[slot]);
+      localStorage.removeItem(SAVE_KEYS[slot] + "_transcript");
       refreshSlotPresence();
-      return false;
+      return { ok: false, loadedLines: [] };
     }
   }
 
   function clearSlot(slot: number) {
     localStorage.removeItem(SAVE_KEYS[slot]);
+    localStorage.removeItem(SAVE_KEYS[slot] + "_transcript");
     refreshSlotPresence();
   }
 
-  function buildUIFromStory(s: Story, resetTranscript: boolean) {
+  function continueStory(s: Story): { newLines: string[]; newChoices: ChoiceView[] } {
     const newLines: string[] = [];
     while (s.canContinue) {
       const t = (s as any).Continue().trim();
       if (t) newLines.push(t);
     }
-
-    if (resetTranscript) setLines(newLines);
-    else if (newLines.length) setLines(prev => [...prev, ...newLines]);
-
-    setChoices(s.currentChoices.map(c => ({ index: c.index, text: c.text })));
-
-    syncSidebar(s);
+    const newChoices = s.currentChoices.map(c => ({ index: c.index, text: c.text }));
+    return { newLines, newChoices };
   }
 
   function startFreshInSlot(slot: number, chosenStats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number }) {
@@ -105,11 +107,17 @@ export default function Page() {
     setStory(s);
     setActiveSlot(slot);
 
-    setLines([]);
-    setChoices([]);
+    setStory(s);
+    setActiveSlot(slot);
 
-    buildUIFromStory(s, true);
-    saveToSlot(s, slot);
+    // Initial run
+    const { newLines, newChoices } = continueStory(s);
+
+    setLines(newLines);
+    setChoices(newChoices);
+    syncSidebar(s);
+
+    saveToSlot(s, slot, newLines);
 
     setMode("game");
   }
@@ -174,7 +182,7 @@ export default function Page() {
     if (!storyJson) return;
 
     const s = new Story(storyJson);
-    const ok = loadFromSlot(s, slot);
+    const { ok, loadedLines } = loadFromSlot(s, slot);
 
     if (!ok) {
       // If there is no save or it is corrupt, do nothing.
@@ -184,13 +192,16 @@ export default function Page() {
     setStory(s);
     setActiveSlot(slot);
 
-    setLines([]);
-    setChoices([]);
+    // Resume (check if there is more content, though usually save is at choice)
+    const { newLines, newChoices } = continueStory(s);
 
-    buildUIFromStory(s, true);
+    const combinedLines = [...loadedLines, ...newLines];
+    setLines(combinedLines);
+    setChoices(newChoices);
+    syncSidebar(s);
 
     // Normalize by resaving immediately.
-    saveToSlot(s, slot);
+    saveToSlot(s, slot, combinedLines);
 
     setMode("game");
   }
@@ -198,8 +209,18 @@ export default function Page() {
   function choose(i: number) {
     if (!story) return;
     story.ChooseChoiceIndex(i);
-    buildUIFromStory(story, false);
-    saveToSlot(story, activeSlot);
+
+    const { newLines, newChoices } = continueStory(story);
+
+    setLines(prev => {
+      const updated = [...prev, ...newLines];
+      // We must save inside the setter or use a temp var to ensure we save the UPDATED list
+      // But standard way is to use the computed value.
+      saveToSlot(story, activeSlot, updated);
+      return updated;
+    });
+    setChoices(newChoices);
+    syncSidebar(story);
   }
 
   function backToMenu() {
