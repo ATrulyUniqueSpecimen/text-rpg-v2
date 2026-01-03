@@ -82,14 +82,16 @@ VAR char_gender = "male"
 === status_check ===
 {
 - HP_CUR <= 0:
-    ~ HP_CUR = 1
-    ~ SP_CUR = 0
     You are knocked unconscious.
-    + [Continue] -> after_goblin
+    + [Continue]
+        ~ HP_CUR = 1
+        ~ SP_CUR = 0
+        -> after_goblin //replace with whatever generic defeat event
 - SP_CUR >= SP_BASE + EQUIPPED_STAT_BONUS("SP"):
-    ~ SP_CUR = 0
-    You overloaded on spirit. You collapse from exhaustion.
-    + [Continue] -> after_goblin
+    You overload on spirit. You collapse from exhaustion.
+    + [Continue] 
+        ~ SP_CUR = 0
+        -> after_goblin //replace with whatever generic defeat event
 - else:
     ->->
 }

@@ -30,7 +30,7 @@ function StatEditor({
   const remaining = pool - total;
 
   function setOne(k: keyof BaseStats, v: number) {
-    const clamped = Math.max(0, Math.min(20, v));
+    const clamped = Math.max(1, Math.min(20, v));
     setStats({ ...stats, [k]: clamped });
   }
 
@@ -53,7 +53,7 @@ function StatEditor({
             <div style={{ fontSize: 11, opacity: 0.6 }}>{LABELS[k].full}</div>
           </div>
           <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "flex-end" }}>
-            <button onClick={() => setOne(k, stats[k] - 1)} disabled={stats[k] <= 0}>
+            <button onClick={() => setOne(k, stats[k] - 1)} disabled={stats[k] <= 1}>
               -
             </button>
             <div style={{ width: 30, textAlign: "center", fontWeight: 700 }}>{stats[k]}</div>
@@ -125,7 +125,7 @@ export default function Page() {
     return { victory: false, peaceful: false, decked_out: false };
   });
 
-  const [stats, setStats] = useState({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5, HP_BASE: 5, SP_BASE: 5 });
+  const [stats, setStats] = useState({ STR_BASE: 4, CHA_BASE: 4, WIT_BASE: 4, HP_BASE: 4, SP_BASE: 4 });
   const [gender, setGender] = useState<"male" | "female" | "other">("male");
   const STAT_POOL = 25;
 
@@ -231,7 +231,7 @@ export default function Page() {
 
   function beginNewGame(slot: number) {
     setPendingSlot(slot);
-    setStats({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5, HP_BASE: 5, SP_BASE: 5 });
+    setStats({ STR_BASE: 4, CHA_BASE: 4, WIT_BASE: 4, HP_BASE: 4, SP_BASE: 4 });
     setGender("male");
     setMode("stats");
     setShowOverwriteConfirm(false);
