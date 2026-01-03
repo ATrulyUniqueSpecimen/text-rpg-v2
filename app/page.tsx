@@ -873,7 +873,7 @@ export default function Page() {
                   ))}
                 </div>
 
-                <div style={{ display: "grid", gap: 10, marginTop: 24, paddingBottom: 20 }}>
+                <div style={{ display: "grid", gap: 10, marginTop: 24, paddingBottom: "65vh" }}>
                   {choices.map(c => (
                     <button key={c.index} onClick={() => choose(c.index)} style={{ textAlign: "left", padding: "12px 18px", background: "rgba(128,128,128,0.1)", border: `1px solid ${borderColor}`, borderRadius: 8, color: textColor, cursor: "pointer", transition: "all 0.2s ease" }}>
                       {c.text}
