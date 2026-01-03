@@ -12,6 +12,8 @@ type ChoiceView = { index: number; text: string };
 export default function Page() {
   type Mode = "menu" | "stats" | "game";
 
+  const avatarY = 5;
+
   const [uiCoins, setUiCoins] = useState(0);
   const [uiEquippedWeapon, setUiEquippedWeapon] = useState("none");
   const [uiEquippedArmor, setUiEquippedArmor] = useState("none");
@@ -571,15 +573,15 @@ export default function Page() {
                 })}
               </div>
 
-              <div style={{ marginBottom: 24, position: "relative", height: 280, borderRadius: 12, overflow: "visible" }}>
+              <div style={{ marginBottom: 24, position: "relative", height: 175 + (avatarY * 2), borderRadius: 12, overflow: "visible" }}>
                 {/* Body Silhouette - with mix-blend-mode to hide white bg */}
                 <div style={{
                   position: "absolute",
                   left: "50%",
                   top: "50%",
                   transform: "translate(-50%, -50%)",
-                  width: 100,
-                  height: 240,
+                  width: 200,
+                  height: 480,
                   backgroundImage: 'url("/assets/body_silhouette.png")',
                   backgroundSize: "contain",
                   backgroundRepeat: "no-repeat",
@@ -592,23 +594,29 @@ export default function Page() {
 
                 {/* Connector Lines SVG */}
                 <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.4, zIndex: 1 }}>
-                  <line x1={190} y1={24} x2={130} y2={30} stroke="white" strokeWidth="1" />
-                  <line x1={190} y1={74} x2={130} y2={55} stroke="white" strokeWidth="1" />
-                  <line x1={70} y1={74} x2={130} y2={70} stroke="white" strokeWidth="1" />
-                  <line x1={70} y1={134} x2={130} y2={90} stroke="white" strokeWidth="1" />
-                  <line x1={190} y1={134} x2={160} y2={115} stroke="white" strokeWidth="1" />
-                  <line x1={190} y1={194} x2={160} y2={130} stroke="white" strokeWidth="1" />
+                  {/* Left side: Hat -> Head */}
+                  <line x1={62} y1={24} x2={130} y2={15 + avatarY} stroke="white" strokeWidth="1" />
+                  {/* Left side: Outfit -> Finger L */}
+                  <line x1={62} y1={84} x2={110} y2={40 + avatarY} stroke="white" strokeWidth="1" />
+                  {/* Left side: Ring -> Torso */}
+                  <line x1={62} y1={144} x2={92} y2={90 + avatarY} stroke="white" strokeWidth="1" />
+                  {/* Right side: Necklace -> Hand R */}
+                  <line x1={200} y1={24} x2={130} y2={42 + avatarY} stroke="white" strokeWidth="1" />
+                  {/* Right side: Armor -> Chest */}
+                  <line x1={200} y1={84} x2={130} y2={55 + avatarY} stroke="white" strokeWidth="1" />
+                  {/* Right side: Sword -> Neck */}
+                  <line x1={200} y1={144} x2={167} y2={90 + avatarY} stroke="white" strokeWidth="1" />
                 </svg>
 
-                {/* Equipment Slots */}
+                {/* Equipment Slots - Left: Hat, Ring, Outfit. Right: Weapon, Armor, Necklace */}
                 {(
                   [
-                    { id: "hat", label: "Hat", icon: "/assets/icon_hat.png", x: 190, y: 0, slot: uiEquippedHat },
-                    { id: "necklace", label: "Necklace", icon: "/assets/icon_necklace.png", x: 190, y: 50, slot: uiEquippedNecklace },
-                    { id: "outfit", label: "Outfit", icon: "/assets/icon_outfit.png", x: 6, y: 50, slot: uiEquippedOutfit },
-                    { id: "armor", label: "Armor", icon: "/assets/icon_armor.png", x: 6, y: 110, slot: uiEquippedArmor },
-                    { id: "weapon", label: "Weapon", icon: "/assets/icon_weapon.png", x: 190, y: 110, slot: uiEquippedWeapon },
-                    { id: "ring", label: "Ring", icon: null, x: 190, y: 170, slot: uiEquippedRing },
+                    { id: "hat", label: "Hat", icon: "/assets/icon_hat.png", x: 6, y: 0, slot: uiEquippedHat },
+                    { id: "outfit", label: "Outfit", icon: "/assets/icon_outfit.png", x: 6, y: 60, slot: uiEquippedOutfit },
+                    { id: "ring", label: "Ring", icon: null, x: 6, y: 120, slot: uiEquippedRing },
+                    { id: "necklace", label: "Necklace", icon: "/assets/icon_necklace.png", x: 200, y: 0, slot: uiEquippedNecklace },
+                    { id: "armor", label: "Armor", icon: "/assets/icon_armor.png", x: 200, y: 60, slot: uiEquippedArmor },
+                    { id: "weapon", label: "Weapon", icon: "/assets/icon_weapon.png", x: 200, y: 120, slot: uiEquippedWeapon },
                   ] as const
                 ).map((item) => {
                   const isEquipped = item.slot !== "none";
@@ -682,9 +690,8 @@ export default function Page() {
                               width: "80%",
                               height: "80%",
                               objectFit: "contain",
-                              opacity: isEquipped ? 0 : 0.3,
-                              filter: "invert(1)",
-                              transition: "opacity 0.3s ease"
+                              opacity: 0.3,
+                              filter: "invert(1)"
                             }}
                           />
                         )}
@@ -715,15 +722,14 @@ export default function Page() {
                           WebkitMaskImage: isRing
                             ? "radial-gradient(transparent 38%, black 42%, black 58%, transparent 62%)"
                             : `url(${item.icon})`,
-                          maskSize: "70%",
-                          WebkitMaskSize: "70%",
+                          maskSize: "80%",
+                          WebkitMaskSize: "80%",
                           maskRepeat: "no-repeat",
                           WebkitMaskRepeat: "no-repeat",
                           maskPosition: "center",
                           WebkitMaskPosition: "center",
-                          opacity: isEquipped ? 1 : 0,
-                          transform: isEquipped ? "translateY(0)" : "translateY(100%)",
-                          transition: "opacity 0.3s ease, transform 0.3s ease"
+                          clipPath: isEquipped ? "inset(0 0 0 0)" : "inset(100% 0 0 0)",
+                          transition: "clip-path 0.3s ease"
                         }} />
                       </div>
                     </div>

@@ -20,8 +20,10 @@ const SAVE_KEYS = [
     "ink_save_3"
 ];
 const ACTIVE_SLOT_KEY = "ink_active_slot";
+const MAX_HISTORY_LINES = 100;
 function Page() {
     _s();
+    const avatarY = 5;
     const [uiCoins, setUiCoins] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(0);
     const [uiEquippedWeapon, setUiEquippedWeapon] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("none");
     const [uiEquippedArmor, setUiEquippedArmor] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("none");
@@ -30,6 +32,20 @@ function Page() {
     const [uiEquippedNecklace, setUiEquippedNecklace] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("none");
     const [uiEquippedRing, setUiEquippedRing] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("none");
     const [uiInventory, setUiInventory] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [uiStats, setUiStats] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])({
+        STR: {
+            base: 0,
+            total: 0
+        },
+        CHA: {
+            base: 0,
+            total: 0
+        },
+        WIT: {
+            base: 0,
+            total: 0
+        }
+    });
     const [mode, setMode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("menu");
     const [pendingSlot, setPendingSlot] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
     const [stats, setStats] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])({
@@ -54,43 +70,59 @@ function Page() {
     function refreshSlotPresence() {
         setSlotHasSave(readSlotPresence());
     }
-    function saveToSlot(s, slot) {
+    function saveToSlot(s, slot, currentLines) {
         localStorage.setItem(SAVE_KEYS[slot], s.state.toJson());
+        localStorage.setItem(SAVE_KEYS[slot] + "_transcript", JSON.stringify(currentLines));
         localStorage.setItem(ACTIVE_SLOT_KEY, String(slot));
         refreshSlotPresence();
     }
     function loadFromSlot(s, slot) {
         const saved = localStorage.getItem(SAVE_KEYS[slot]);
-        if (!saved) return false;
+        const savedTranscript = localStorage.getItem(SAVE_KEYS[slot] + "_transcript");
+        if (!saved) return {
+            ok: false,
+            loadedLines: []
+        };
         try {
             s.state.LoadJson(saved);
-            return true;
+            const lines = savedTranscript ? JSON.parse(savedTranscript) : [];
+            // Safety clamp on load
+            if (lines.length > MAX_HISTORY_LINES) {
+                lines.splice(0, lines.length - MAX_HISTORY_LINES);
+            }
+            return {
+                ok: true,
+                loadedLines: lines
+            };
         } catch  {
             localStorage.removeItem(SAVE_KEYS[slot]);
+            localStorage.removeItem(SAVE_KEYS[slot] + "_transcript");
             refreshSlotPresence();
-            return false;
+            return {
+                ok: false,
+                loadedLines: []
+            };
         }
     }
     function clearSlot(slot) {
         localStorage.removeItem(SAVE_KEYS[slot]);
+        localStorage.removeItem(SAVE_KEYS[slot] + "_transcript");
         refreshSlotPresence();
     }
-    function buildUIFromStory(s, resetTranscript) {
+    function continueStory(s) {
         const newLines = [];
         while(s.canContinue){
             const t = s.Continue().trim();
             if (t) newLines.push(t);
         }
-        if (resetTranscript) setLines(newLines);
-        else if (newLines.length) setLines((prev)=>[
-                ...prev,
-                ...newLines
-            ]);
-        setChoices(s.currentChoices.map((c)=>({
+        const newChoices = s.currentChoices.map((c)=>({
                 index: c.index,
                 text: c.text
-            })));
-        syncSidebar(s);
+            }));
+        return {
+            newLines,
+            newChoices
+        };
     }
     function startFreshInSlot(slot, chosenStats) {
         if (!storyJson) return;
@@ -101,10 +133,14 @@ function Page() {
         s.variablesState["WIT_BASE"] = chosenStats.WIT_BASE;
         setStory(s);
         setActiveSlot(slot);
-        setLines([]);
-        setChoices([]);
-        buildUIFromStory(s, true);
-        saveToSlot(s, slot);
+        setStory(s);
+        setActiveSlot(slot);
+        // Initial run
+        const { newLines, newChoices } = continueStory(s);
+        setLines(newLines);
+        setChoices(newChoices);
+        syncSidebar(s);
+        saveToSlot(s, slot, newLines);
         setMode("game");
     }
     function StatEditor({ stats, setStats, pool }) {
@@ -139,7 +175,7 @@ function Page() {
                     ]
                 }, void 0, true, {
                     fileName: "[project]/text-rpg-v2/app/page.tsx",
-                    lineNumber: 132,
+                    lineNumber: 157,
                     columnNumber: 9
                 }, this),
                 [
@@ -161,7 +197,7 @@ function Page() {
                                 children: LABELS[k]
                             }, void 0, false, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 136,
+                                lineNumber: 161,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -170,7 +206,7 @@ function Page() {
                                 children: "-"
                             }, void 0, false, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 137,
+                                lineNumber: 162,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -181,7 +217,7 @@ function Page() {
                                 children: stats[k]
                             }, void 0, false, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 138,
+                                lineNumber: 163,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -190,19 +226,19 @@ function Page() {
                                 children: "+"
                             }, void 0, false, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 139,
+                                lineNumber: 164,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, k, true, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 135,
+                        lineNumber: 160,
                         columnNumber: 11
                     }, this))
             ]
         }, void 0, true, {
             fileName: "[project]/text-rpg-v2/app/page.tsx",
-            lineNumber: 131,
+            lineNumber: 156,
             columnNumber: 7
         }, this);
     }
@@ -223,25 +259,44 @@ function Page() {
     function loadSlot(slot) {
         if (!storyJson) return;
         const s = new __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$inkjs$2f$dist$2f$ink$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Story"](storyJson);
-        const ok = loadFromSlot(s, slot);
+        const { ok, loadedLines } = loadFromSlot(s, slot);
         if (!ok) {
             // If there is no save or it is corrupt, do nothing.
             return;
         }
         setStory(s);
         setActiveSlot(slot);
-        setLines([]);
-        setChoices([]);
-        buildUIFromStory(s, true);
+        // Resume (check if there is more content, though usually save is at choice)
+        const { newLines, newChoices } = continueStory(s);
+        const combinedLines = [
+            ...loadedLines,
+            ...newLines
+        ];
+        setLines(combinedLines);
+        setChoices(newChoices);
+        syncSidebar(s);
         // Normalize by resaving immediately.
-        saveToSlot(s, slot);
+        saveToSlot(s, slot, combinedLines);
         setMode("game");
     }
     function choose(i) {
         if (!story) return;
         story.ChooseChoiceIndex(i);
-        buildUIFromStory(story, false);
-        saveToSlot(story, activeSlot);
+        const { newLines, newChoices } = continueStory(story);
+        setLines((prev)=>{
+            const updated = [
+                ...prev,
+                ...newLines
+            ];
+            // Limit history to prevent infinite storage growth
+            if (updated.length > MAX_HISTORY_LINES) {
+                updated.splice(0, updated.length - MAX_HISTORY_LINES);
+            }
+            saveToSlot(story, activeSlot, updated);
+            return updated;
+        });
+        setChoices(newChoices);
+        syncSidebar(story);
     }
     function backToMenu() {
         setMode("menu");
@@ -298,6 +353,49 @@ function Page() {
         const invIds = inkListToIds(invVal);
         // Turn ids into display names for your sidebar list
         setUiInventory(invIds.map(pretty));
+        calculateAndSetStats(s, eqWraw, eqAraw, eqOraw, eqHraw, eqNraw, eqRraw);
+    }
+    const ITEM_STATS = {
+        rusty_sword: {
+            STR: 2
+        },
+        leather_armor: {
+            STR: 4
+        },
+        old_sack: {
+            CHA: -1
+        }
+    };
+    function calculateAndSetStats(s, ...equippedRaw) {
+        const baseSTR = asNumber(s.variablesState["STR_BASE"], 0);
+        const baseCHA = asNumber(s.variablesState["CHA_BASE"], 0);
+        const baseWIT = asNumber(s.variablesState["WIT_BASE"], 0);
+        let bonusSTR = 0;
+        let bonusCHA = 0;
+        let bonusWIT = 0;
+        equippedRaw.forEach((raw)=>{
+            const id = normalizeItemId(raw);
+            const stats = ITEM_STATS[id];
+            if (stats) {
+                bonusSTR += stats.STR ?? 0;
+                bonusCHA += stats.CHA ?? 0;
+                bonusWIT += stats.WIT ?? 0;
+            }
+        });
+        setUiStats({
+            STR: {
+                base: baseSTR,
+                total: baseSTR + bonusSTR
+            },
+            CHA: {
+                base: baseCHA,
+                total: baseCHA + bonusCHA
+            },
+            WIT: {
+                base: baseWIT,
+                total: baseWIT + bonusWIT
+            }
+        });
     }
     const ITEM_NAMES = {
         none: "None",
@@ -328,6 +426,18 @@ function Page() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
         }
     }["Page.useEffect"], []);
+    const bottomRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRef"])(null);
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "Page.useEffect": ()=>{
+            // Auto-scroll to bottom when lines or choices change
+            bottomRef.current?.scrollIntoView({
+                behavior: "smooth"
+            });
+        }
+    }["Page.useEffect"], [
+        lines,
+        choices
+    ]);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
         style: {
             maxWidth: 720,
@@ -344,7 +454,7 @@ function Page() {
                         children: "Text RPG"
                     }, void 0, false, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 303,
+                        lineNumber: 387,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -355,7 +465,7 @@ function Page() {
                         children: "Choose a save slot."
                     }, void 0, false, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 304,
+                        lineNumber: 388,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -394,7 +504,7 @@ function Page() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 324,
+                                                lineNumber: 408,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -405,13 +515,13 @@ function Page() {
                                                 children: slotHasSave[slot] ? "Progress saved on this device." : "Start a new run here."
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 327,
+                                                lineNumber: 411,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 323,
+                                        lineNumber: 407,
                                         columnNumber: 17
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -426,7 +536,7 @@ function Page() {
                                                 children: "New Game"
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 333,
+                                                lineNumber: 417,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -435,7 +545,7 @@ function Page() {
                                                 children: "Load"
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 337,
+                                                lineNumber: 421,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -444,24 +554,24 @@ function Page() {
                                                 children: "Delete"
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 344,
+                                                lineNumber: 428,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 332,
+                                        lineNumber: 416,
                                         columnNumber: 17
                                     }, this)
                                 ]
                             }, slot, true, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 310,
+                                lineNumber: 394,
                                 columnNumber: 15
                             }, this))
                     }, void 0, false, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 308,
+                        lineNumber: 392,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -473,13 +583,13 @@ function Page() {
                         children: "Saves use localStorage, so they live per browser per device until deleted."
                     }, void 0, false, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 355,
+                        lineNumber: 439,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                lineNumber: 302,
+                lineNumber: 386,
                 columnNumber: 9
             }, this),
             mode === "stats" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -491,7 +601,7 @@ function Page() {
                         children: "Create Character"
                     }, void 0, false, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 363,
+                        lineNumber: 447,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -506,7 +616,7 @@ function Page() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 365,
+                        lineNumber: 449,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(StatEditor, {
@@ -515,7 +625,7 @@ function Page() {
                         pool: STAT_POOL
                     }, void 0, false, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 369,
+                        lineNumber: 453,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -534,7 +644,7 @@ function Page() {
                                 children: "Back"
                             }, void 0, false, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 376,
+                                lineNumber: 460,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -543,19 +653,19 @@ function Page() {
                                 children: "Confirm"
                             }, void 0, false, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 379,
+                                lineNumber: 463,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 375,
+                        lineNumber: 459,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                lineNumber: 362,
+                lineNumber: 446,
                 columnNumber: 9
             }, this),
             mode === "game" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -573,7 +683,7 @@ function Page() {
                                 children: "Back to Menu"
                             }, void 0, false, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 389,
+                                lineNumber: 473,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -587,13 +697,13 @@ function Page() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 390,
+                                lineNumber: 474,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 388,
+                        lineNumber: 472,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -606,7 +716,13 @@ function Page() {
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 style: {
                                     flex: 1,
-                                    minWidth: 0
+                                    minWidth: 0,
+                                    height: "60vh",
+                                    overflowY: "auto",
+                                    border: "1px solid rgba(255,255,255,0.1)",
+                                    borderRadius: 8,
+                                    padding: 16,
+                                    background: "rgba(0,0,0,0.2)"
                                 },
                                 children: [
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -615,40 +731,52 @@ function Page() {
                                             lineHeight: 1.5
                                         },
                                         children: lines.map((t, idx)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                style: {
+                                                    marginTop: 0,
+                                                    marginBottom: 16
+                                                },
                                                 children: t
                                             }, idx, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 400,
+                                                lineNumber: 495,
                                                 columnNumber: 19
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 398,
+                                        lineNumber: 493,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         style: {
                                             display: "grid",
                                             gap: 10,
-                                            marginTop: 18
+                                            marginTop: 18,
+                                            paddingBottom: 20
                                         },
                                         children: choices.map((c)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                                                 onClick: ()=>choose(c.index),
                                                 children: c.text
                                             }, c.index, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 406,
+                                                lineNumber: 503,
                                                 columnNumber: 19
                                             }, this))
                                     }, void 0, false, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 404,
+                                        lineNumber: 501,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        ref: bottomRef
+                                    }, void 0, false, {
+                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                        lineNumber: 509,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 397,
+                                lineNumber: 481,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("aside", {
@@ -672,7 +800,7 @@ function Page() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 424,
+                                        lineNumber: 523,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -688,7 +816,7 @@ function Page() {
                                                 children: "Coins"
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 427,
+                                                lineNumber: 526,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -699,114 +827,470 @@ function Page() {
                                                 children: uiCoins
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 428,
+                                                lineNumber: 527,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 426,
+                                        lineNumber: 525,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         style: {
-                                            marginBottom: 12
+                                            marginBottom: 16
                                         },
                                         children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 style: {
                                                     opacity: 0.75,
                                                     fontSize: 13,
-                                                    marginBottom: 4
+                                                    marginBottom: 6
                                                 },
-                                                children: "Equipped"
+                                                children: "Stats"
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 432,
+                                                lineNumber: 531,
                                                 columnNumber: 17
                                             }, this),
+                                            [
+                                                "STR",
+                                                "CHA",
+                                                "WIT"
+                                            ].map((stat)=>{
+                                                const { base, total } = uiStats[stat];
+                                                const diff = total - base;
+                                                // specific color stops could be tweaked, but standard red->blue covers the range nicely
+                                                const fillPercent = Math.min(100, Math.max(0, total / 20 * 100));
+                                                const basePercent = Math.min(100, Math.max(0, base / 20 * 100));
+                                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    style: {
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        fontSize: 13,
+                                                        marginBottom: 6
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            style: {
+                                                                fontWeight: 600,
+                                                                width: 32
+                                                            },
+                                                            children: stat
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                            lineNumber: 542,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            style: {
+                                                                flex: 1,
+                                                                height: 8,
+                                                                background: "rgba(255,255,255,0.1)",
+                                                                borderRadius: 4,
+                                                                marginRight: 8,
+                                                                marginLeft: 4,
+                                                                position: "relative",
+                                                                overflow: "hidden"
+                                                            },
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    style: {
+                                                                        width: `${fillPercent}%`,
+                                                                        height: "100%",
+                                                                        background: "linear-gradient(90deg, #ff4d4d, #4d4dff)",
+                                                                        transition: "width 0.3s ease"
+                                                                    }
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                                    lineNumber: 548,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    style: {
+                                                                        position: "absolute",
+                                                                        left: `${basePercent}%`,
+                                                                        top: 0,
+                                                                        bottom: 0,
+                                                                        width: 2,
+                                                                        background: "rgba(255,255,255,0.8)",
+                                                                        boxShadow: "0 0 2px rgba(0,0,0,0.5)"
+                                                                    }
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                                    lineNumber: 556,
+                                                                    columnNumber: 25
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                            lineNumber: 545,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            style: {
+                                                                width: 60,
+                                                                textAlign: "right",
+                                                                fontFamily: "monospace",
+                                                                whiteSpace: "nowrap",
+                                                                flexShrink: 0
+                                                            },
+                                                            children: [
+                                                                total,
+                                                                " ",
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                                    style: {
+                                                                        opacity: 0.5,
+                                                                        fontSize: 11
+                                                                    },
+                                                                    children: [
+                                                                        "(",
+                                                                        diff >= 0 ? "+" : "",
+                                                                        diff,
+                                                                        ")"
+                                                                    ]
+                                                                }, void 0, true, {
+                                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                                    lineNumber: 569,
+                                                                    columnNumber: 33
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                            lineNumber: 568,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, stat, true, {
+                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                    lineNumber: 541,
+                                                    columnNumber: 21
+                                                }, this);
+                                            })
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                        lineNumber: 530,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                        style: {
+                                            marginBottom: 24,
+                                            position: "relative",
+                                            height: 175 + avatarY * 2,
+                                            borderRadius: 12,
+                                            overflow: "visible"
+                                        },
+                                        children: [
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                                 style: {
-                                                    fontSize: 14
+                                                    position: "absolute",
+                                                    left: "50%",
+                                                    top: "50%",
+                                                    transform: "translate(-50%, -50%)",
+                                                    width: 200,
+                                                    height: 480,
+                                                    backgroundImage: 'url("/assets/body_silhouette.png")',
+                                                    backgroundSize: "contain",
+                                                    backgroundRepeat: "no-repeat",
+                                                    backgroundPosition: "center",
+                                                    opacity: 0.6,
+                                                    mixBlendMode: "multiply",
+                                                    filter: "invert(1)",
+                                                    zIndex: 0
+                                                }
+                                            }, void 0, false, {
+                                                fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                lineNumber: 578,
+                                                columnNumber: 17
+                                            }, this),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("svg", {
+                                                style: {
+                                                    position: "absolute",
+                                                    top: 0,
+                                                    left: 0,
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    pointerEvents: "none",
+                                                    opacity: 0.4,
+                                                    zIndex: 1
                                                 },
                                                 children: [
-                                                    "Weapon: ",
-                                                    pretty(uiEquippedWeapon)
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                        x1: 62,
+                                                        y1: 24,
+                                                        x2: 130,
+                                                        y2: 15 + avatarY,
+                                                        stroke: "white",
+                                                        strokeWidth: "1"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                        lineNumber: 598,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                        x1: 62,
+                                                        y1: 84,
+                                                        x2: 110,
+                                                        y2: 40 + avatarY,
+                                                        stroke: "white",
+                                                        strokeWidth: "1"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                        lineNumber: 600,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                        x1: 62,
+                                                        y1: 144,
+                                                        x2: 92,
+                                                        y2: 90 + avatarY,
+                                                        stroke: "white",
+                                                        strokeWidth: "1"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                        lineNumber: 602,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                        x1: 200,
+                                                        y1: 24,
+                                                        x2: 130,
+                                                        y2: 42 + avatarY,
+                                                        stroke: "white",
+                                                        strokeWidth: "1"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                        lineNumber: 604,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                        x1: 200,
+                                                        y1: 84,
+                                                        x2: 130,
+                                                        y2: 55 + avatarY,
+                                                        stroke: "white",
+                                                        strokeWidth: "1"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                        lineNumber: 606,
+                                                        columnNumber: 19
+                                                    }, this),
+                                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("line", {
+                                                        x1: 200,
+                                                        y1: 144,
+                                                        x2: 167,
+                                                        y2: 90 + avatarY,
+                                                        stroke: "white",
+                                                        strokeWidth: "1"
+                                                    }, void 0, false, {
+                                                        fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                        lineNumber: 608,
+                                                        columnNumber: 19
+                                                    }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 433,
+                                                lineNumber: 596,
                                                 columnNumber: 17
                                             }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                style: {
-                                                    fontSize: 14
+                                            [
+                                                {
+                                                    id: "hat",
+                                                    label: "Hat",
+                                                    icon: "/assets/icon_hat.png",
+                                                    x: 6,
+                                                    y: 0,
+                                                    slot: uiEquippedHat
                                                 },
-                                                children: [
-                                                    "Armor: ",
-                                                    pretty(uiEquippedArmor)
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 434,
-                                                columnNumber: 17
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                style: {
-                                                    fontSize: 14
+                                                {
+                                                    id: "outfit",
+                                                    label: "Outfit",
+                                                    icon: "/assets/icon_outfit.png",
+                                                    x: 6,
+                                                    y: 60,
+                                                    slot: uiEquippedOutfit
                                                 },
-                                                children: [
-                                                    "Outfit: ",
-                                                    pretty(uiEquippedOutfit)
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 435,
-                                                columnNumber: 17
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                style: {
-                                                    fontSize: 14
+                                                {
+                                                    id: "ring",
+                                                    label: "Ring",
+                                                    icon: null,
+                                                    x: 6,
+                                                    y: 120,
+                                                    slot: uiEquippedRing
                                                 },
-                                                children: [
-                                                    "Hat: ",
-                                                    pretty(uiEquippedHat)
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 436,
-                                                columnNumber: 17
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                style: {
-                                                    fontSize: 14
+                                                {
+                                                    id: "necklace",
+                                                    label: "Necklace",
+                                                    icon: "/assets/icon_necklace.png",
+                                                    x: 200,
+                                                    y: 0,
+                                                    slot: uiEquippedNecklace
                                                 },
-                                                children: [
-                                                    "Necklace: ",
-                                                    pretty(uiEquippedNecklace)
-                                                ]
-                                            }, void 0, true, {
-                                                fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 437,
-                                                columnNumber: 17
-                                            }, this),
-                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                                                style: {
-                                                    fontSize: 14
+                                                {
+                                                    id: "armor",
+                                                    label: "Armor",
+                                                    icon: "/assets/icon_armor.png",
+                                                    x: 200,
+                                                    y: 60,
+                                                    slot: uiEquippedArmor
                                                 },
-                                                children: [
-                                                    "Ring: ",
-                                                    pretty(uiEquippedRing)
-                                                ]
-                                            }, void 0, true, {
+                                                {
+                                                    id: "weapon",
+                                                    label: "Weapon",
+                                                    icon: "/assets/icon_weapon.png",
+                                                    x: 200,
+                                                    y: 120,
+                                                    slot: uiEquippedWeapon
+                                                }
+                                            ].map((item)=>{
+                                                const isEquipped = item.slot !== "none";
+                                                const isRing = item.id === "ring";
+                                                const displayName = isEquipped ? pretty(item.slot) : "Empty";
+                                                return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "equipment-slot",
+                                                    style: {
+                                                        position: "absolute",
+                                                        left: item.x,
+                                                        top: item.y,
+                                                        width: 52,
+                                                        height: 52,
+                                                        background: "transparent",
+                                                        border: `2px solid ${isEquipped ? "rgba(77,77,255,0.8)" : "rgba(255,255,255,0.2)"}`,
+                                                        borderRadius: 10,
+                                                        display: "flex",
+                                                        alignItems: "center",
+                                                        justifyContent: "center",
+                                                        cursor: "pointer",
+                                                        zIndex: 2,
+                                                        transition: "border-color 0.3s ease, box-shadow 0.3s ease",
+                                                        boxShadow: isEquipped ? "0 0 8px rgba(77,77,255,0.4)" : "none"
+                                                    },
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "slot-tooltip",
+                                                            style: {
+                                                                position: "absolute",
+                                                                bottom: "calc(100% + 8px)",
+                                                                left: "50%",
+                                                                transform: "translateX(-50%)",
+                                                                background: "rgba(30,30,40,0.95)",
+                                                                color: isEquipped ? "#fff" : "#888",
+                                                                padding: "6px 10px",
+                                                                borderRadius: 6,
+                                                                fontSize: 12,
+                                                                fontWeight: 500,
+                                                                whiteSpace: "nowrap",
+                                                                opacity: 0,
+                                                                pointerEvents: "none",
+                                                                transition: "opacity 0.15s ease",
+                                                                border: "1px solid rgba(255,255,255,0.1)",
+                                                                zIndex: 10
+                                                            },
+                                                            children: displayName
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                            lineNumber: 649,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            style: {
+                                                                width: "100%",
+                                                                height: "100%",
+                                                                position: "relative",
+                                                                overflow: "hidden",
+                                                                borderRadius: 8
+                                                            },
+                                                            children: [
+                                                                !isRing && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
+                                                                    src: item.icon,
+                                                                    alt: item.id,
+                                                                    style: {
+                                                                        position: "absolute",
+                                                                        top: "10%",
+                                                                        left: "10%",
+                                                                        width: "80%",
+                                                                        height: "80%",
+                                                                        objectFit: "contain",
+                                                                        opacity: 0.3,
+                                                                        filter: "invert(1)"
+                                                                    }
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                                    lineNumber: 683,
+                                                                    columnNumber: 27
+                                                                }, this),
+                                                                isRing && !isEquipped && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    style: {
+                                                                        position: "absolute",
+                                                                        top: "50%",
+                                                                        left: "50%",
+                                                                        transform: "translate(-50%, -50%)",
+                                                                        width: 20,
+                                                                        height: 20,
+                                                                        border: "3px solid rgba(255,255,255,0.25)",
+                                                                        borderRadius: "50%"
+                                                                    }
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                                    lineNumber: 699,
+                                                                    columnNumber: 27
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                                    style: {
+                                                                        position: "absolute",
+                                                                        top: 0,
+                                                                        left: 0,
+                                                                        width: "100%",
+                                                                        height: "100%",
+                                                                        background: "linear-gradient(180deg, #ff4d4d, #4d4dff)",
+                                                                        maskImage: isRing ? "radial-gradient(transparent 38%, black 42%, black 58%, transparent 62%)" : `url(${item.icon})`,
+                                                                        WebkitMaskImage: isRing ? "radial-gradient(transparent 38%, black 42%, black 58%, transparent 62%)" : `url(${item.icon})`,
+                                                                        maskSize: "80%",
+                                                                        WebkitMaskSize: "80%",
+                                                                        maskRepeat: "no-repeat",
+                                                                        WebkitMaskRepeat: "no-repeat",
+                                                                        maskPosition: "center",
+                                                                        WebkitMaskPosition: "center",
+                                                                        clipPath: isEquipped ? "inset(0 0 0 0)" : "inset(100% 0 0 0)",
+                                                                        transition: "clip-path 0.3s ease"
+                                                                    }
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                                    lineNumber: 712,
+                                                                    columnNumber: 25
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                            lineNumber: 674,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, item.id, true, {
+                                                    fileName: "[project]/text-rpg-v2/app/page.tsx",
+                                                    lineNumber: 627,
+                                                    columnNumber: 21
+                                                }, this);
+                                            }),
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("style", {
+                                                children: `
+                  .equipment-slot:hover .slot-tooltip {
+                    opacity: 1 !important;
+                  }
+                  .equipment-slot:hover {
+                    border-color: rgba(255,255,255,0.5) !important;
+                  }
+                `
+                                            }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 438,
+                                                lineNumber: 740,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 431,
+                                        lineNumber: 576,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -820,7 +1304,7 @@ function Page() {
                                                 children: "Inventory"
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 442,
+                                                lineNumber: 751,
                                                 columnNumber: 17
                                             }, this),
                                             uiInventory.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -831,7 +1315,7 @@ function Page() {
                                                 children: "Empty"
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 444,
+                                                lineNumber: 753,
                                                 columnNumber: 19
                                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$text$2d$rpg$2d$v2$2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
                                                 style: {
@@ -842,46 +1326,46 @@ function Page() {
                                                         children: item
                                                     }, item, false, {
                                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                        lineNumber: 448,
+                                                        lineNumber: 757,
                                                         columnNumber: 23
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                                lineNumber: 446,
+                                                lineNumber: 755,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                        lineNumber: 441,
+                                        lineNumber: 750,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                                lineNumber: 414,
+                                lineNumber: 513,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/text-rpg-v2/app/page.tsx",
-                        lineNumber: 395,
+                        lineNumber: 479,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/text-rpg-v2/app/page.tsx",
-                lineNumber: 387,
+                lineNumber: 471,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/text-rpg-v2/app/page.tsx",
-        lineNumber: 300,
+        lineNumber: 384,
         columnNumber: 5
     }, this);
 }
-_s(Page, "l+oe0GoOInN0lrn4gSXf3Na2Rls=");
+_s(Page, "8az7K3Xg9tlaZytJ7vOXMgd83Vs=");
 _c = Page;
 var _c;
 __turbopack_context__.k.register(_c, "Page");

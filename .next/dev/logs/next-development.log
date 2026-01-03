@@ -1,3 +1,256 @@
 [00:00:02.822] Server  LOG     ✓ Ready in 2.2s
 [00:00:07.187] Server  LOG     ○ Compiling / ...
 [00:00:12.717] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:05:06.125] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:13:27.855] Server  LOG     ✓ Compiled in 84ms
+[00:13:29.925] Server  LOG     ✓ Compiled in 87ms
+[00:21:20.461] Server  LOG     ✓ Compiled in 64ms
+[00:21:23.717] Server  LOG     ✓ Compiled in 71ms
+[00:21:24.768] Browser ERROR   ./text-rpg-v2/app/page.tsx:21:26
+Ecmascript file had an error
+  19 |   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
+  20 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+> 21 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+     |                          ^^^^^^^^^^^^^^^^^
+  22 |   const [uiInventory, setUiInventory] = useState<string[]>([]);
+  23 |   const [uiStats, setUiStats] = useState<{
+  24 |     STR: { base: number; total: number };
+
+the name `setUiEquippedRing` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[00:21:24.769] Browser ERROR   ./text-rpg-v2/app/page.tsx:21:10
+Ecmascript file had an error
+  19 |   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
+  20 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+> 21 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+     |          ^^^^^^^^^^^^^^
+  22 |   const [uiInventory, setUiInventory] = useState<string[]>([]);
+  23 |   const [uiStats, setUiStats] = useState<{
+  24 |     STR: { base: number; total: number };
+
+the name `uiEquippedRing` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[00:21:26.935] Server  LOG     ✓ Compiled in 50ms
+[00:21:27.770] Browser ERROR   ./text-rpg-v2/app/page.tsx:21:26
+Ecmascript file had an error
+  19 |   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
+  20 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+> 21 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+     |                          ^^^^^^^^^^^^^^^^^
+  22 |   const [uiInventory, setUiInventory] = useState<string[]>([]);
+  23 |   const [uiStats, setUiStats] = useState<{
+  24 |     STR: { base: number; total: number };
+
+the name `setUiEquippedRing` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[00:21:27.770] Browser ERROR   ./text-rpg-v2/app/page.tsx:21:10
+Ecmascript file had an error
+  19 |   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
+  20 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+> 21 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+     |          ^^^^^^^^^^^^^^
+  22 |   const [uiInventory, setUiInventory] = useState<string[]>([]);
+  23 |   const [uiStats, setUiStats] = useState<{
+  24 |     STR: { base: number; total: number };
+
+the name `uiEquippedRing` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[00:21:28.441] Server  LOG     ✓ Compiled in 104ms
+[00:21:28.772] Browser ERROR   ./text-rpg-v2/app/page.tsx:21:26
+Ecmascript file had an error
+  19 |   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
+  20 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+> 21 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+     |                          ^^^^^^^^^^^^^^^^^
+  22 |   const [uiInventory, setUiInventory] = useState<string[]>([]);
+  23 |   const [uiStats, setUiStats] = useState<{
+  24 |     STR: { base: number; total: number };
+
+the name `setUiEquippedRing` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[00:21:28.772] Browser ERROR   ./text-rpg-v2/app/page.tsx:21:10
+Ecmascript file had an error
+  19 |   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
+  20 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+> 21 |   const [uiEquippedRing, setUiEquippedRing] = useState("none");
+     |          ^^^^^^^^^^^^^^
+  22 |   const [uiInventory, setUiInventory] = useState<string[]>([]);
+  23 |   const [uiStats, setUiStats] = useState<{
+  24 |     STR: { base: number; total: number };
+
+the name `uiEquippedRing` is defined multiple times
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[00:25:25.493] Server  LOG     ✓ Compiled in 160ms
+[00:25:28.538] Server  LOG     ✓ Compiled in 168ms
+[00:25:31.855] Server  LOG     ✓ Compiled in 152ms
+[00:25:34.152] Server  LOG     ✓ Compiled in 194ms
+[00:25:36.937] Server  LOG     ✓ Compiled in 101ms
+[00:25:39.225] Server  LOG     ✓ Compiled in 155ms
+[00:25:40.558] Server  LOG     ✓ Compiled in 94ms
+[00:27:39.001] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:28:20.924] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:31:32.571] Server  LOG     ✓ Compiled in 91ms
+[00:31:35.222] Server  LOG     ✓ Compiled in 141ms
+[00:31:37.017] Server  LOG     ✓ Compiled in 130ms
+[00:39:04.366] Server  LOG     ✓ Compiled in 78ms
+[00:42:28.991] Server  LOG     ✓ Compiled in 89ms
+[00:54:45.600] Server  LOG     ✓ Compiled in 336ms
+[00:56:33.938] Server  LOG     ✓ Compiled in 251ms
+[00:56:44.471] Server  LOG     ✓ Compiled in 152ms
+[00:58:28.036] Server  LOG     ✓ Compiled in 302ms
+[00:59:46.204] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:10:01.716] Server  LOG     ✓ Compiled in 383ms
+[01:11:20.199] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:11:50.538] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:17:38.191] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:21:22.857] Server  LOG     ✓ Compiled in 155ms
+[01:21:25.065] Server  LOG     ✓ Compiled in 63ms
+[01:21:50.154] Server  LOG     ✓ Compiled in 45ms
+[01:21:58.473] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:22:06.784] Server  LOG     ✓ Compiled in 74ms
+[01:22:12.349] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:23:27.940] Server  LOG     ✓ Compiled in 51ms
+[01:24:02.721] Server  LOG     ✓ Compiled in 69ms
+[01:24:14.278] Server  LOG     ✓ Compiled in 52ms
+[01:27:54.567] Server  LOG     ✓ Compiled in 102ms
+[01:27:57.076] Server  LOG     ✓ Compiled in 114ms
+[01:28:36.060] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:31:59.696] Server  LOG     ✓ Compiled in 59ms
+[01:33:31.690] Server  LOG     ✓ Compiled in 49ms
+[01:39:23.828] Server  LOG     ✓ Compiled in 39ms
+[01:39:31.732] Server  LOG     ✓ Compiled in 118ms
+[01:40:10.287] Server  LOG     ✓ Compiled in 66ms
+[01:40:13.402] Server  LOG     ✓ Compiled in 77ms
+[01:40:16.725] Server  LOG     ✓ Compiled in 108ms
+[01:41:24.457] Server  LOG     ✓ Compiled in 70ms
+[01:41:51.768] Server  LOG     ✓ Compiled in 39ms
+[01:42:09.914] Server  LOG     ✓ Compiled in 128ms
+[01:42:14.255] Server  LOG     ✓ Compiled in 62ms
+[01:42:30.073] Server  LOG     ✓ Compiled in 46ms
+[01:42:34.019] Server  LOG     ✓ Compiled in 50ms
+[01:43:19.336] Server  LOG     ✓ Compiled in 67ms
+[01:43:41.939] Server  LOG     ✓ Compiled in 96ms
+[01:43:44.632] Server  LOG     ✓ Compiled in 75ms
+[01:43:49.585] Server  LOG     ✓ Compiled in 68ms
+[01:44:01.105] Server  LOG     ✓ Compiled in 93ms
+[01:44:08.955] Server  LOG     ✓ Compiled in 133ms
+[01:44:58.564] Server  LOG     ✓ Compiled in 89ms
+[01:45:02.075] Server  LOG     ✓ Compiled in 80ms
+[01:45:06.107] Server  LOG     ✓ Compiled in 109ms
+[01:45:43.477] Server  LOG     ✓ Compiled in 61ms
+[01:45:51.198] Server  LOG     ✓ Compiled in 65ms
+[01:46:14.657] Server  LOG     ✓ Compiled in 71ms
+[01:46:24.792] Server  LOG     ✓ Compiled in 72ms
+[01:47:14.136] Server  LOG     ✓ Compiled in 68ms
+[01:48:43.251] Server  LOG     ✓ Compiled in 64ms
+[01:49:34.456] Server  LOG     ✓ Compiled in 71ms
+[01:49:42.734] Server  LOG     ✓ Compiled in 74ms
+[01:50:01.003] Server  LOG     ✓ Compiled in 69ms
+[01:50:18.813] Server  LOG     ✓ Compiled in 134ms
+[01:50:30.781] Server  LOG     ✓ Compiled in 55ms
+[01:50:44.711] Server  LOG     ✓ Compiled in 77ms
+[01:51:02.722] Server  LOG     ✓ Compiled in 59ms
+[01:51:06.457] Server  LOG     ✓ Compiled in 119ms
+[01:51:06.561] Browser ERROR   ./text-rpg-v2/app/page.tsx:15:20
+Parsing ecmascript source code failed
+  13 |   type Mode = "menu" | "stats" | "game";
+  14 |
+> 15 |   const avatarY = 1\20;
+     |                    ^
+  16 |
+  17 |   const [uiCoins, setUiCoins] = useState(0);
+  18 |   const [uiEquippedWeapon, setUiEquippedWeapon] = useState("none");
+
+Expected a semicolon
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[01:51:06.561] Browser ERROR   ./text-rpg-v2/app/page.tsx:15:20
+Parsing ecmascript source code failed
+  13 |   type Mode = "menu" | "stats" | "game";
+  14 |
+> 15 |   const avatarY = 1\20;
+     |                    ^
+  16 |
+  17 |   const [uiCoins, setUiCoins] = useState(0);
+  18 |   const [uiEquippedWeapon, setUiEquippedWeapon] = useState("none");
+
+Expected unicode escape
+
+Import traces:
+  Client Component Browser:
+    ./text-rpg-v2/app/page.tsx [Client Component Browser]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./text-rpg-v2/app/page.tsx [Client Component SSR]
+    ./text-rpg-v2/app/page.tsx [Server Component]
+[01:51:29.108] Server  LOG     ✓ Compiled in 74ms
+[01:51:34.422] Server  LOG     ✓ Compiled in 112ms
+[01:51:50.401] Server  LOG     ✓ Compiled in 204ms
+[01:53:14.888] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:53:30.133] Server  LOG     ✓ Compiled in 84ms
+[01:53:36.636] Server  LOG     ✓ Compiled in 213ms
+[02:11:43.475] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:11:55.833] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:12:11.690] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:15:14.355] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:18:07.805] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:19:06.959] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:22:16.165] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:22:57.123] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:25:31.817] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

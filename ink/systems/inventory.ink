@@ -54,7 +54,6 @@ VAR eq_ring = ITEMS.none
     }
 
 === inventory ===
-You check what you're carrying.
 // Iterate over all items in the inventory
 // Note: Ink lists are sets. We check availability.
     + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}] -> item_screen(ITEMS.rusty_sword)
@@ -123,62 +122,50 @@ You check what you're carrying.
 
 === do_equip_weapon(item) ===
 ~ eq_weapon = item
-You equip it.
 ->->
 
 === do_unequip_weapon(item) ===
 ~ eq_weapon = ITEMS.none
-You unequip it.
 ->->
 
 === do_equip_armor(item) ===
 ~ eq_armor = item
-You put it on.
 ->->
 
 === do_unequip_armor(item) ===
 ~ eq_armor = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_outfit(item) ===
 ~ eq_outfit = item
-You put it on.
 ->->
 
 === do_unequip_outfit(item) ===
 ~ eq_outfit = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_hat(item) ===
 ~ eq_hat = item
-You put it on.
 ->->
 
 === do_unequip_hat(item) ===
 ~ eq_hat = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_necklace(item) ===
 ~ eq_necklace = item
-You put it on.
 ->->
 
 === do_unequip_necklace(item) ===
 ~ eq_necklace = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_ring(item) ===
 ~ eq_ring = item
-You put it on.
 ->->
 
 === do_unequip_ring(item) ===
 ~ eq_ring = ITEMS.none
-You take it off.
 ->->
 
 === do_drop(item) ===
