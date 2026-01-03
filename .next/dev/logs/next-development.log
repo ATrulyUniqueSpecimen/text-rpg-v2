@@ -1,0 +1,47 @@
+[00:00:04.585] Server  LOG     ✓ Ready in 3.1s
+[00:00:06.365] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:27.690] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?
+[00:02:41.755] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:46.523] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?
+[00:03:27.731] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:02.574] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?
+[00:07:03.528] Browser ERROR   uncaughtError: Error: choice out of range null
+[00:08:07.227] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:11.522] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?
+[00:15:50.503] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:26:47.436] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:26:58.375] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[00:28:12.311] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:28:14.636] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[00:28:15.828] Browser ERROR   uncaughtError: Error: choice out of range null
+[00:31:12.917] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:31:14.646] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[00:31:32.273] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:31:34.534] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[00:41:45.325] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:41:47.551] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[00:44:46.911] Server  LOG     ✓ Compiled in 65ms
+[00:45:56.570] Server  LOG     ✓ Compiled in 48ms
+[00:46:12.673] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:46:20.249] Browser ERROR   Continue() threw: {"name":"StoryException","useEndLineNumber":false}
+[00:46:20.249] Browser ERROR   Ink currentErrors: ["RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String"]
+[00:46:20.249] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[00:51:05.804] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:51:12.103] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:51:20.775] Browser ERROR   Continue() threw: {"name":"StoryException","useEndLineNumber":false}
+[00:51:20.775] Browser ERROR   Ink currentErrors: ["RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String"]
+[00:51:20.775] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[00:58:21.408] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:58:30.096] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: (Ink Pointer -> inventory.0 -- index 8): Cannot perform operation && on String
+[01:00:17.545] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:01:34.168] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:01:40.020] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:01:44.786] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:01:52.078] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:01:56.055] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:02:30.183] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:06:23.306] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:07:31.433] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?
+[01:08:41.976] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:09:50.030] Browser ERROR   uncaughtError: StoryException: Ink had 1 error. It is strongly suggested that you assign an error handler to story.onError. The first issue was: RUNTIME ERROR: unexpectedly reached end of content. Do you need a '->->' to return from a tunnel?
+[01:10:25.558] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
