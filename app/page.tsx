@@ -246,6 +246,17 @@ export default function Page() {
     }
   }
 
+  function handleQuickContinue() {
+    if (slotHasSave[activeSlot]) {
+      loadSlot(activeSlot);
+    } else {
+      const firstSave = slotHasSave.indexOf(true);
+      if (firstSave !== -1) {
+        setMenuView("saves");
+      }
+    }
+  }
+
   function confirmStats() {
     if (pendingSlot === null) return;
     if (slotHasSave[pendingSlot]) {
@@ -511,9 +522,9 @@ export default function Page() {
   const lastLineRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
     if (lastLineRef.current && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = lastLineRef.current.offsetTop - 20;
+      scrollContainerRef.current.scrollTop = lastLineRef.current.offsetTop - 18;
     }
-  }, [lines]);
+  }, [lines, mode]);
 
   const bgColor = isDarkMode ? "#121212" : "#f5f5f5";
   const textColor = isDarkMode ? "#ffffff" : "#121212";
@@ -547,11 +558,13 @@ export default function Page() {
                     New Game
                   </button>
                   <button
-                    onClick={() => setMenuView("saves")}
+                    onClick={handleQuickContinue}
+                    disabled={!slotHasSave.some(s => s === true)}
                     style={{
-                      background: "rgba(128,128,128,0.2)",
+                      background: slotHasSave.some(s => s === true) ? "rgba(128,128,128,0.2)" : "rgba(128,128,128,0.1)",
                       border: "none", color: textColor, padding: "12px 32px", borderRadius: 8,
-                      fontSize: 18, fontWeight: 700, cursor: "pointer"
+                      fontSize: 18, fontWeight: 700, cursor: slotHasSave.some(s => s === true) ? "pointer" : "not-allowed",
+                      opacity: slotHasSave.some(s => s === true) ? 1 : 0.4
                     }}
                   >
                     Continue
