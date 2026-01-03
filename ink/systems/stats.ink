@@ -4,6 +4,10 @@
 VAR STR_BASE = 0
 VAR CHA_BASE = 0
 VAR WIT_BASE = 0
+VAR HP_BASE = 0
+VAR SP_BASE = 0
+VAR HP_CUR = 0
+VAR SP_CUR = 0
 VAR char_gender = "male"
 
 // Sum all equipped-slot bonuses that apply to a given stat.

@@ -1,5 +1,5 @@
 // ALL INVENTORY ITEMS MUST BE HERE
-LIST ITEMS = rusty_sword, leather_armor, old_sack, small_knife, none
+LIST ITEMS = rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, none
 VAR inv = ()
 
 VAR eq_weapon = ITEMS.none
@@ -20,6 +20,8 @@ VAR eq_ring = ITEMS.none
         ~ return "outfit"
     - ITEMS.small_knife:
         ~ return "weapon"
+    - ITEMS.potion_of_spirit:
+        ~ return "consumable"
     - else:
         ~ return "none"
     }
@@ -38,11 +40,23 @@ VAR eq_ring = ITEMS.none
     - ITEMS.old_sack:
         { stat:
         - "CHA": ~ return -1
-        - "STR": ~ return 1
+        - "HP": ~ return 1
         }
     - ITEMS.small_knife:
         { stat:
         - "STR": ~ return 1
+        }
+    - ITEMS.potion_of_spirit:
+        ~ return 0
+    }
+    ~ return 0
+
+// Helper: Get the usage bonus for a consumable
+=== function get_item_use_bonus(item, stat) ===
+    { item:
+    - ITEMS.potion_of_spirit:
+        { stat:
+        - "SP_CUR": ~ return 2
         }
     }
     ~ return 0
@@ -57,17 +71,31 @@ VAR eq_ring = ITEMS.none
         ~ return "Old sack"
     - ITEMS.small_knife:
         ~ return "Small knife"
+    - ITEMS.potion_of_spirit:
+        ~ return "Potion of Spirit"
     - else:
         ~ return "{item}"
+    }
+
+=== function is_equipped(item) ===
+    {
+    - eq_weapon == item: ~ return true
+    - eq_armor == item: ~ return true
+    - eq_outfit == item: ~ return true
+    - eq_hat == item: ~ return true
+    - eq_necklace == item: ~ return true
+    - eq_ring == item: ~ return true
+    - else: ~ return false
     }
 
 === inventory ===
 // Iterate over all items in the inventory
 // Note: Ink lists are sets. We check availability.
-    + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}] -> item_screen(ITEMS.rusty_sword)
-    + { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}] -> item_screen(ITEMS.leather_armor)
-    + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}] -> item_screen(ITEMS.old_sack)
-    + { inv ? ITEMS.small_knife } [{item_label(ITEMS.small_knife)}] -> item_screen(ITEMS.small_knife)
+    + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}{is_equipped(ITEMS.rusty_sword): (Equipped)}] -> item_screen(ITEMS.rusty_sword)
+    + { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}{is_equipped(ITEMS.leather_armor): (Equipped)}] -> item_screen(ITEMS.leather_armor)
+    + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}{is_equipped(ITEMS.old_sack): (Equipped)}] -> item_screen(ITEMS.old_sack)
+    + { inv ? ITEMS.small_knife } [{item_label(ITEMS.small_knife)}{is_equipped(ITEMS.small_knife): (Equipped)}] -> item_screen(ITEMS.small_knife)
+    + { inv ? ITEMS.potion_of_spirit } [{item_label(ITEMS.potion_of_spirit)}] -> item_screen(ITEMS.potion_of_spirit)
     + [Back] ->->
 
 // Generic Item Screen
@@ -76,53 +104,67 @@ VAR eq_ring = ITEMS.none
 ~ temp str_b = get_item_limit_bonus(item, "STR")
 ~ temp cha_b = get_item_limit_bonus(item, "CHA")
 ~ temp wit_b = get_item_limit_bonus(item, "WIT")
+~ temp hp_b = get_item_limit_bonus(item, "HP")
+~ temp sp_b = get_item_limit_bonus(item, "SP")
+
+~ temp str_u = get_item_use_bonus(item, "STR")
+~ temp cha_u = get_item_use_bonus(item, "CHA")
+~ temp wit_u = get_item_use_bonus(item, "WIT")
+~ temp hp_max_u = get_item_use_bonus(item, "HP_MAX")
+~ temp hp_cur_u = get_item_use_bonus(item, "HP_CUR")
+~ temp sp_max_u = get_item_use_bonus(item, "SP_MAX")
+~ temp sp_cur_u = get_item_use_bonus(item, "SP_CUR")
 
 { slot == "weapon":
     { eq_weapon == item:
-        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_weapon(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}{ hp_b > 0: (-{hp_b} HP)}{ hp_b < 0: (+{hp_b * -1} HP)}{ sp_b > 0: (-{sp_b} SP)}{ sp_b < 0: (+{sp_b * -1} SP)}] -> do_unequip_weapon(item)
     - else:
-        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_weapon(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}{ hp_b > 0: (+{hp_b} HP)}{ hp_b < 0: ({hp_b} HP)}{ sp_b > 0: (+{sp_b} SP)}{ sp_b < 0: ({sp_b} SP)}] -> do_equip_weapon(item)
     }
 }
 
 { slot == "armor":
     { eq_armor == item:
-        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_armor(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}{ hp_b > 0: (-{hp_b} HP)}{ hp_b < 0: (+{hp_b * -1} HP)}{ sp_b > 0: (-{sp_b} SP)}{ sp_b < 0: (+{sp_b * -1} SP)}] -> do_unequip_armor(item)
     - else:
-        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_armor(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}{ hp_b > 0: (+{hp_b} HP)}{ hp_b < 0: ({hp_b} HP)}{ sp_b > 0: (+{sp_b} SP)}{ sp_b < 0: ({sp_b} SP)}] -> do_equip_armor(item)
     }
 }
 
 { slot == "outfit":
     { eq_outfit == item:
-        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_outfit(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}{ hp_b > 0: (-{hp_b} HP)}{ hp_b < 0: (+{hp_b * -1} HP)}{ sp_b > 0: (-{sp_b} SP)}{ sp_b < 0: (+{sp_b * -1} SP)}] -> do_unequip_outfit(item)
     - else:
-        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_outfit(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}{ hp_b > 0: (+{hp_b} HP)}{ hp_b < 0: ({hp_b} HP)}{ sp_b > 0: (+{sp_b} SP)}{ sp_b < 0: ({sp_b} SP)}] -> do_equip_outfit(item)
     }
 }
 
 { slot == "hat":
     { eq_hat == item:
-        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_hat(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}{ hp_b > 0: (-{hp_b} HP)}{ hp_b < 0: (+{hp_b * -1} HP)}{ sp_b > 0: (-{sp_b} SP)}{ sp_b < 0: (+{sp_b * -1} SP)}] -> do_unequip_hat(item)
     - else:
-        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_hat(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}{ hp_b > 0: (+{hp_b} HP)}{ hp_b < 0: ({hp_b} HP)}{ sp_b > 0: (+{sp_b} SP)}{ sp_b < 0: ({sp_b} SP)}] -> do_equip_hat(item)
     }
 }
 
 { slot == "necklace":
     { eq_necklace == item:
-        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_necklace(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}{ hp_b > 0: (-{hp_b} HP)}{ hp_b < 0: (+{hp_b * -1} HP)}{ sp_b > 0: (-{sp_b} SP)}{ sp_b < 0: (+{sp_b * -1} SP)}] -> do_unequip_necklace(item)
     - else:
-        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_necklace(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}{ hp_b > 0: (+{hp_b} HP)}{ hp_b < 0: ({hp_b} HP)}{ sp_b > 0: (+{sp_b} SP)}{ sp_b < 0: ({sp_b} SP)}] -> do_equip_necklace(item)
     }
 }
 
 { slot == "ring":
     { eq_ring == item:
-        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_ring(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}{ hp_b > 0: (-{hp_b} HP)}{ hp_b < 0: (+{hp_b * -1} HP)}{ sp_b > 0: (-{sp_b} SP)}{ sp_b < 0: (+{sp_b * -1} SP)}] -> do_unequip_ring(item)
     - else:
-        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_ring(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}{ hp_b > 0: (+{hp_b} HP)}{ hp_b < 0: ({hp_b} HP)}{ sp_b > 0: (+{sp_b} SP)}{ sp_b < 0: ({sp_b} SP)}] -> do_equip_ring(item)
     }
+}
+
+{ slot == "consumable":
+    + [Use{ str_u > 0: (+{str_u} STR)}{ str_u < 0: ({str_u} STR)}{ cha_u > 0: (+{cha_u} CHA)}{ cha_u < 0: ({cha_u} CHA)}{ wit_u > 0: (+{wit_u} WIT)}{ wit_u < 0: ({wit_u} WIT)}{ hp_max_u > 0: (+{hp_max_u} Max HP)}{ hp_max_u < 0: ({hp_max_u} Max HP)}{ hp_cur_u > 0: (+{hp_cur_u} HP)}{ hp_cur_u < 0: ({hp_cur_u} HP)}{ sp_max_u > 0: (+{sp_max_u} Max SP)}{ sp_max_u < 0: ({sp_max_u} Max SP)}{ sp_cur_u > 0: (+{sp_cur_u} SP)}{ sp_cur_u < 0: ({sp_cur_u} SP)}] -> use_confirm(item)
 }
 
 + [Drop] -> drop_confirm(item)
@@ -132,6 +174,23 @@ VAR eq_ring = ITEMS.none
 Are you sure you want to drop {item_label(item)}?
 + [Yes] -> do_drop(item)
 + [No] -> item_screen(item)
+
+=== use_confirm(item) ===
+Are you sure you want to use {item_label(item)}?
++ [Yes] -> do_use(item)
++ [No] -> item_screen(item)
+
+=== do_use(item) ===
+~ STR_BASE += get_item_use_bonus(item, "STR")
+~ CHA_BASE += get_item_use_bonus(item, "CHA")
+~ WIT_BASE += get_item_use_bonus(item, "WIT")
+~ HP_BASE += get_item_use_bonus(item, "HP_MAX")
+~ HP_CUR += get_item_use_bonus(item, "HP_CUR")
+~ SP_BASE += get_item_use_bonus(item, "SP_MAX")
+~ SP_CUR += get_item_use_bonus(item, "SP_CUR")
+~ inv -= item
+You use {item_label(item)}.
++ [Back] -> inventory
 
 
 === do_equip_weapon(item) ===

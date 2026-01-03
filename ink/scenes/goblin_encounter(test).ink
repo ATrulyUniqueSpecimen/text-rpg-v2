@@ -3,6 +3,7 @@ VAR took_sword = false
 VAR took_sack = false
 VAR took_armor = false
 VAR took_knife = false
+VAR took_potion = false
 
 === find_goblin ===
 You come across a goblin in the woods. What do you do?
@@ -23,8 +24,9 @@ You come across a goblin in the woods. What do you do?
     + [Leave] -> after_goblin
   - else:
     You lose and limp away.
+    ~ HP_CUR -= 5
+    -> after_goblin
 }
--> after_goblin
 
 === loot_goblin ===
 + {not took_coins} [Take 5 coins]
@@ -47,6 +49,10 @@ You come across a goblin in the woods. What do you do?
     ~ take_item(ITEMS.small_knife)
     ~ took_knife = true
     -> loot_goblin
++ {not took_potion} [Take potion of spirit]
+    ~ take_item(ITEMS.potion_of_spirit)
+    ~ took_potion = true
+    -> loot_goblin
 + [Leave] 
     -> after_goblin
 
@@ -67,6 +73,7 @@ You drop your weapon.
 
 The goblin takes your coins and leaves.
 // Logic: Lose all coins
+~ SP_CUR += 2
 ~ coins = 0
 -> after_goblin
 

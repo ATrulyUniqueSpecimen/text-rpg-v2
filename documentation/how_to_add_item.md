@@ -20,27 +20,37 @@ Here is the step-by-step process to add a new item to the game.
         }
     ```
 
-3.  **Define Stats**: Add it to the `get_item_limit_bonus` function.
+3.  **Define Stats**: 
+    - For **Equipment** (permanent bonuses while equipped), add to `get_item_limit_bonus`.
+    - For **Consumables** (one-time effect), add to `get_item_use_bonus`.
     ```ink
+    // Use this for armor/weapons
     === function get_item_limit_bonus(item, stat) ===
         { item:
-        ...
         - ITEMS.ring_of_intelligence:
             { stat:
             - "WIT": ~ return 2
             }
-        ...
+        }
+
+    // Use this for potions/food
+    === function get_item_use_bonus(item, stat) ===
+        { item:
+        - ITEMS.potion_of_spirit:
+            { stat:
+            - "SP_CUR": ~ return 2
+            }
         }
     ```
+    *Note: `do_use` automatically applies these bonuses to your base stats or current HP/SP.*
 
-4.  **Add to Inventory List**: You MUST add the item to the main `inventory` knot so it appears in the list.
-    **IMPORTANT**: Use `+` (sticky choice), NOT `*`. Using `*` will make the item disappear after you look at it once.
+4.  **Add to Inventory List**: You MUST add the item to the main `inventory` knot.
     ```ink
     === inventory ===
         ...
         + { inv ? ITEMS.ring_of_intelligence } [{item_label(ITEMS.ring_of_intelligence)}] -> item_screen(ITEMS.ring_of_intelligence)
+        + { inv ? ITEMS.potion_of_spirit } [{item_label(ITEMS.potion_of_spirit)}] -> item_screen(ITEMS.potion_of_spirit)
         ...
-        + [Back] ->->
     ```
 
 5.  **Define Label**: Add the display name in `item_label` (used inside Ink text).

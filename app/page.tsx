@@ -9,6 +9,80 @@ const MAX_HISTORY_LINES = 100;
 
 type ChoiceView = { index: number; text: string };
 
+type BaseStats = {
+  STR_BASE: number;
+  CHA_BASE: number;
+  WIT_BASE: number;
+  HP_BASE: number;
+  SP_BASE: number;
+};
+
+function StatEditor({
+  stats,
+  setStats,
+  pool,
+}: {
+  stats: BaseStats;
+  setStats: (s: BaseStats) => void;
+  pool: number;
+}) {
+  const total = stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE + stats.HP_BASE + stats.SP_BASE;
+  const remaining = pool - total;
+
+  function setOne(k: keyof BaseStats, v: number) {
+    const clamped = Math.max(0, Math.min(20, v));
+    setStats({ ...stats, [k]: clamped });
+  }
+
+  const LABELS: Record<string, { short: string; full: string }> = {
+    HP_BASE: { short: "HP", full: "Health" },
+    SP_BASE: { short: "SP", full: "Spirit" },
+    STR_BASE: { short: "STR", full: "Strength" },
+    CHA_BASE: { short: "CHA", full: "Charisma" },
+    WIT_BASE: { short: "INT", full: "Intelligence" },
+  };
+
+  return (
+    <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
+      <div style={{ opacity: 0.85 }}>Remaining: {remaining}</div>
+
+      {(["HP_BASE", "SP_BASE", "STR_BASE", "CHA_BASE", "WIT_BASE"] as const).map((k) => (
+        <div key={k} style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 10, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div style={{ width: 40, fontWeight: 700 }}>{LABELS[k].short}</div>
+            <div style={{ fontSize: 11, opacity: 0.6 }}>{LABELS[k].full}</div>
+          </div>
+          <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "flex-end" }}>
+            <button onClick={() => setOne(k, stats[k] - 1)} disabled={stats[k] <= 0}>
+              -
+            </button>
+            <div style={{ width: 30, textAlign: "center", fontWeight: 700 }}>{stats[k]}</div>
+            <button onClick={() => setOne(k, stats[k] + 1)} disabled={remaining <= 0}>
+              +
+            </button>
+          </div>
+          {/* Added a bar at character creation too */}
+          <div style={{ gridColumn: "1 / span 2", height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${(stats[k] / 20) * 100}%`,
+                height: "100%",
+                background:
+                  k === "HP_BASE"
+                    ? "linear-gradient(90deg, #ff9d4d, #9d4dff)"
+                    : k === "SP_BASE"
+                      ? "linear-gradient(90deg, #ff4dff, #4dff4d)"
+                      : "linear-gradient(90deg, #ff4d4d, #4d4dff)",
+                transition: "width 0.5s ease",
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Page() {
   type Mode = "menu" | "stats" | "game";
 
@@ -27,18 +101,22 @@ export default function Page() {
     STR: { base: number; total: number };
     CHA: { base: number; total: number };
     WIT: { base: number; total: number };
+    HP: { cur: number; max: number; bonus?: number };
+    SP: { cur: number; max: number; bonus?: number };
   }>({
     STR: { base: 0, total: 0 },
     CHA: { base: 0, total: 0 },
     WIT: { base: 0, total: 0 },
+    HP: { cur: 0, max: 0, bonus: 0 },
+    SP: { cur: 0, max: 0, bonus: 0 },
   });
 
   const [mode, setMode] = useState<Mode>("menu");
   const [pendingSlot, setPendingSlot] = useState<number | null>(null);
 
-  const [stats, setStats] = useState({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5 });
+  const [stats, setStats] = useState({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5, HP_BASE: 5, SP_BASE: 5 });
   const [gender, setGender] = useState<"male" | "female" | "other">("male");
-  const STAT_POOL = 15; // example, change as you like
+  const STAT_POOL = 25; // example, change as you like
 
   const [storyJson, setStoryJson] = useState<any | null>(null);
   const [story, setStory] = useState<Story | null>(null);
@@ -102,7 +180,7 @@ export default function Page() {
     return { newLines, newChoices };
   }
 
-  function startFreshInSlot(slot: number, chosenStats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number }, chosenGender: "male" | "female" | "other") {
+  function startFreshInSlot(slot: number, chosenStats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number; HP_BASE: number; SP_BASE: number }, chosenGender: "male" | "female" | "other") {
     if (!storyJson) return;
 
     const s = new Story(storyJson);
@@ -111,10 +189,11 @@ export default function Page() {
     s.variablesState["STR_BASE"] = chosenStats.STR_BASE;
     s.variablesState["CHA_BASE"] = chosenStats.CHA_BASE;
     s.variablesState["WIT_BASE"] = chosenStats.WIT_BASE;
+    s.variablesState["HP_BASE"] = chosenStats.HP_BASE;
+    s.variablesState["SP_BASE"] = chosenStats.SP_BASE;
+    s.variablesState["HP_CUR"] = chosenStats.HP_BASE; // Set current to max initially
+    s.variablesState["SP_CUR"] = 0; // Spirit starts at zero
     s.variablesState["char_gender"] = chosenGender;
-
-    setStory(s);
-    setActiveSlot(slot);
 
     setStory(s);
     setActiveSlot(slot);
@@ -124,60 +203,16 @@ export default function Page() {
 
     setLines(newLines);
     setChoices(newChoices);
-    syncSidebar(s);
+    syncSidebar(s, true);
 
     saveToSlot(s, slot, newLines);
 
     setMode("game");
   }
 
-  function StatEditor({
-    stats,
-    setStats,
-    pool,
-  }: {
-    stats: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number };
-    setStats: (s: { STR_BASE: number; CHA_BASE: number; WIT_BASE: number }) => void;
-    pool: number;
-  }) {
-    const total = stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE;
-    const remaining = pool - total;
-
-    function setOne(k: "STR_BASE" | "CHA_BASE" | "WIT_BASE", v: number) {
-      const clamped = Math.max(0, Math.min(20, v));
-      setStats({ ...stats, [k]: clamped });
-    }
-
-    const LABELS: Record<string, string> = {
-      STR_BASE: "STR",
-      CHA_BASE: "CHA",
-      WIT_BASE: "INT",
-    };
-
-    return (
-      <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-        <div style={{ opacity: 0.85 }}>Remaining: {remaining}</div>
-
-        {(["STR_BASE", "CHA_BASE", "WIT_BASE"] as const).map(k => (
-          <div key={k} style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <div style={{ width: 50, fontWeight: 700 }}>{LABELS[k]}</div>
-            <button onClick={() => setOne(k, stats[k] - 1)} disabled={stats[k] <= 0}>-</button>
-            <div style={{ width: 30, textAlign: "center" }}>{stats[k]}</div>
-            <button
-              onClick={() => setOne(k, stats[k] + 1)}
-              disabled={remaining <= 0}
-            >
-              +
-            </button>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
   function beginNewGame(slot: number) {
     setPendingSlot(slot);
-    setStats({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5 }); // defaults
+    setStats({ STR_BASE: 5, CHA_BASE: 5, WIT_BASE: 5, HP_BASE: 5, SP_BASE: 5 }); // defaults
     setGender("male"); // default gender
     setMode("stats");
   }
@@ -208,7 +243,7 @@ export default function Page() {
     const combinedLines = [...loadedLines, ...newLines];
     setLines(combinedLines);
     setChoices(newChoices);
-    syncSidebar(s);
+    syncSidebar(s, true);
 
     // Normalize by resaving immediately.
     saveToSlot(s, slot, combinedLines);
@@ -285,7 +320,7 @@ export default function Page() {
       .filter((id: string) => id !== "none"); // don’t show "none" in inventory
   }
 
-  function syncSidebar(s: Story) {
+  function syncSidebar(s: Story, skipSync = false) {
     setUiCoins(asNumber((s as any).variablesState["coins"], 0));
 
     const eqWraw = asString((s as any).variablesState["eq_weapon"], "none");
@@ -312,23 +347,28 @@ export default function Page() {
     const gRaw = asString((s as any).variablesState["char_gender"], "male");
     setGender(gRaw as any);
 
-    calculateAndSetStats(s, eqWraw, eqAraw, eqOraw, eqHraw, eqNraw, eqRraw);
+    calculateAndSetStats(s, !!skipSync, eqWraw, eqAraw, eqOraw, eqHraw, eqNraw, eqRraw);
   }
 
-  const ITEM_STATS: Record<string, { STR?: number; CHA?: number; WIT?: number }> = {
+  const ITEM_STATS: Record<string, { STR?: number; CHA?: number; WIT?: number; HP?: number; SP?: number }> = {
     rusty_sword: { STR: 2 },
     leather_armor: { STR: 4 },
-    old_sack: { STR: 1, CHA: -1 },
+    old_sack: { HP: 1, CHA: -1 },
     small_knife: { STR: 1 },
   };
 
   function calculateAndSetStats(
     s: Story,
+    skipSync: boolean,
     ...equippedRaw: string[]
   ) {
     const baseSTR = asNumber((s as any).variablesState["STR_BASE"], 0);
     const baseCHA = asNumber((s as any).variablesState["CHA_BASE"], 0);
     const baseWIT = asNumber((s as any).variablesState["WIT_BASE"], 0);
+    const baseHP = asNumber((s as any).variablesState["HP_BASE"], 0);
+    const baseSP = asNumber((s as any).variablesState["SP_BASE"], 0);
+    const curHP = asNumber((s as any).variablesState["HP_CUR"], 0);
+    const curSP = asNumber((s as any).variablesState["SP_CUR"], 0);
 
     let bonusSTR = 0;
     let bonusCHA = 0;
@@ -341,14 +381,48 @@ export default function Page() {
         bonusSTR += stats.STR ?? 0;
         bonusCHA += stats.CHA ?? 0;
         bonusWIT += stats.WIT ?? 0;
+        // Note: bonuses currently affect Max HP/SP. 
+        // We might want to clamp current to max after this, but usually max increase is safe.
       }
     });
+
+    const totalHPMax = baseHP + (equippedRaw.map(r => ITEM_STATS[normalizeItemId(r)]?.HP ?? 0).reduce((a, b) => a + b, 0));
+    const totalSPMax = baseSP + (equippedRaw.map(r => ITEM_STATS[normalizeItemId(r)]?.SP ?? 0).reduce((a, b) => a + b, 0));
+
+    const bonusHP = totalHPMax - baseHP;
+    const bonusSP = totalSPMax - baseSP;
+
+    // Sync current values with max change if needed
+    // IMPORTANT: Skip if this is the first sync (e.g. loading or new game) to avoid stale uiStats pollution
+    if (!skipSync) {
+      if (totalHPMax !== uiStats.HP.max && s.variablesState["HP_CUR"] !== undefined) {
+        const delta = totalHPMax - uiStats.HP.max;
+        const newCur = Math.max(0, (s.variablesState["HP_CUR"] as number) + delta);
+        s.variablesState["HP_CUR"] = newCur;
+      }
+      if (totalSPMax !== uiStats.SP.max && s.variablesState["SP_CUR"] !== undefined) {
+        const delta = totalSPMax - uiStats.SP.max;
+        const newCur = Math.max(0, (s.variablesState["SP_CUR"] as number) + delta);
+        s.variablesState["SP_CUR"] = newCur;
+      }
+    }
 
     setUiStats({
       STR: { base: baseSTR, total: baseSTR + bonusSTR },
       CHA: { base: baseCHA, total: baseCHA + bonusCHA },
       WIT: { base: baseWIT, total: baseWIT + bonusWIT },
+      HP: { cur: asNumber(s.variablesState["HP_CUR"], 0), max: totalHPMax, bonus: bonusHP },
+      SP: { cur: asNumber(s.variablesState["SP_CUR"], 0), max: totalSPMax, bonus: bonusSP },
     });
+
+    // Triggers
+    if (curHP <= 0 && baseHP > 0) {
+      console.log("TRIGGER: HP reached zero!");
+      // You could add a modal or navigation here later
+    }
+    if (curSP >= baseSP && baseSP > 0) {
+      console.log("TRIGGER: SP reached max!");
+    }
   }
 
   const ITEM_NAMES: Record<string, string> = {
@@ -357,6 +431,7 @@ export default function Page() {
     leather_armor: "Leather Armor",
     old_sack: "Old Sack",
     small_knife: "Small Knife",
+    potion_of_spirit: "Potion of Spirit",
   };
 
   function pretty(id: string) {
@@ -496,7 +571,7 @@ export default function Page() {
             <button onClick={() => { setMode("menu"); setPendingSlot(null); }}>
               Back
             </button>
-            <button onClick={confirmStats} disabled={stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE !== STAT_POOL}>
+            <button onClick={confirmStats} disabled={stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE + stats.HP_BASE + stats.SP_BASE !== STAT_POOL}>
               Confirm
             </button>
           </div>
@@ -561,6 +636,70 @@ export default function Page() {
               <div style={{ marginBottom: 12 }}>
                 <div style={{ opacity: 0.75, fontSize: 13 }}>Coins</div>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{uiCoins}</div>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                  <div style={{ opacity: 0.75, fontSize: 13 }}>Health (HP)</div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>
+                    {uiStats.HP.cur}/{uiStats.HP.max}
+                    {uiStats.HP.bonus !== 0 && (
+                      <span style={{ opacity: 0.6, fontSize: 11, marginLeft: 4 }}>
+                        ({uiStats.HP.bonus! >= 0 ? "+" : ""}{uiStats.HP.bonus})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ height: 10, background: "rgba(255,255,255,0.1)", borderRadius: 5, overflow: "hidden", position: "relative" }}>
+                  <div style={{
+                    width: `${uiStats.HP.max > 0 ? (uiStats.HP.cur / uiStats.HP.max) * 100 : 0}%`,
+                    height: "100%",
+                    background: "linear-gradient(90deg, #ff9d4d, #9d4dff)",
+                    transition: "width 0.5s ease"
+                  }} />
+                  {/* Base Marker */}
+                  <div style={{
+                    position: "absolute",
+                    left: `${uiStats.HP.max > 0 ? (stats.HP_BASE / uiStats.HP.max) * 100 : 0}%`,
+                    top: 0,
+                    bottom: 0,
+                    width: 2,
+                    background: "rgba(255,255,255,0.8)",
+                    display: uiStats.HP.cur < uiStats.HP.max ? "block" : "none"
+                  }} />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
+                  <div style={{ opacity: 0.75, fontSize: 13 }}>Spirit (SP)</div>
+                  <div style={{ fontSize: 13, fontWeight: 700 }}>
+                    {uiStats.SP.cur}/{uiStats.SP.max}
+                    {uiStats.SP.bonus !== 0 && (
+                      <span style={{ opacity: 0.6, fontSize: 11, marginLeft: 4 }}>
+                        ({uiStats.SP.bonus! >= 0 ? "+" : ""}{uiStats.SP.bonus})
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ height: 10, background: "rgba(255,255,255,0.1)", borderRadius: 5, overflow: "hidden", position: "relative" }}>
+                  <div style={{
+                    width: `${uiStats.SP.max > 0 ? (uiStats.SP.cur / uiStats.SP.max) * 100 : 0}%`,
+                    height: "100%",
+                    background: "linear-gradient(90deg, #ff4dff, #4dff4d)",
+                    transition: "width 0.5s ease"
+                  }} />
+                  {/* Base Marker */}
+                  <div style={{
+                    position: "absolute",
+                    left: `${uiStats.SP.max > 0 ? (stats.SP_BASE / uiStats.SP.max) * 100 : 0}%`,
+                    top: 0,
+                    bottom: 0,
+                    width: 2,
+                    background: "rgba(255,255,255,0.8)",
+                    display: uiStats.SP.cur < uiStats.SP.max ? "block" : "none"
+                  }} />
+                </div>
               </div>
 
               <div style={{ marginBottom: 16 }}>
