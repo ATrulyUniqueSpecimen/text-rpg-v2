@@ -510,8 +510,8 @@ export default function Page() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const lastLineRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
-    if (lastLineRef.current) {
-      lastLineRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (lastLineRef.current && scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = lastLineRef.current.offsetTop - 20;
     }
   }, [lines]);
 
@@ -858,7 +858,8 @@ export default function Page() {
                   borderRadius: 12,
                   padding: 20,
                   background: isDarkMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.8)",
-                  scrollBehavior: "smooth"
+                  scrollBehavior: "smooth",
+                  position: "relative"
                 }}
               >
                 <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: 15 }}>
