@@ -508,11 +508,12 @@ export default function Page() {
   }
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const lastLineRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    if (lastLineRef.current) {
+      lastLineRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  }, [lines, choices]);
+  }, [lines]);
 
   const bgColor = isDarkMode ? "#121212" : "#f5f5f5";
   const textColor = isDarkMode ? "#ffffff" : "#121212";
@@ -862,7 +863,13 @@ export default function Page() {
               >
                 <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: 15 }}>
                   {lines.map((t, idx) => (
-                    <p key={idx} style={{ marginTop: 0, marginBottom: 16 }}>{t}</p>
+                    <p
+                      key={idx}
+                      ref={idx === lines.length - 1 ? lastLineRef : null}
+                      style={{ marginTop: 0, marginBottom: 16 }}
+                    >
+                      {t}
+                    </p>
                   ))}
                 </div>
 
