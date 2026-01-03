@@ -67,7 +67,6 @@ VAR char_gender = "male"
     ~ HP_CUR = HP_BASE + EQUIPPED_STAT_BONUS("HP")
 - HP_CUR <= 0:
     ~ HP_CUR = 0
-    // EVENT: HP reached zero. Add logic here later.
 }
 
 
@@ -76,7 +75,21 @@ VAR char_gender = "male"
 {
 - SP_CUR > SP_BASE + EQUIPPED_STAT_BONUS("SP"):
     ~ SP_CUR = SP_BASE + EQUIPPED_STAT_BONUS("SP")
-    // EVENT: SP reached max. Add logic here later.
 - SP_CUR < 0:
     ~ SP_CUR = 0
+}
+
+=== status_check ===
+{
+- HP_CUR <= 0:
+    ~ HP_CUR = 1
+    ~ SP_CUR = 0
+    You are knocked unconscious.
+    + [Continue] -> after_goblin
+- SP_CUR >= SP_BASE + EQUIPPED_STAT_BONUS("SP"):
+    ~ SP_CUR = 0
+    You overloaded on spirit. You collapse from exhaustion.
+    + [Continue] -> after_goblin
+- else:
+    ->->
 }

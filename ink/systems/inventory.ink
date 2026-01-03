@@ -197,6 +197,7 @@ Are you sure you want to use {item_label(item)}?
 ~ lose_hp(-get_item_use_bonus(item, "HP_CUR"))
 ~ SP_BASE += get_item_use_bonus(item, "SP_MAX")
 ~ gain_sp(get_item_use_bonus(item, "SP_CUR"))
+-> status_check ->
 ~ inv -= item
 You use {item_label(item)}.
 + [Back] -> inventory

@@ -29,6 +29,7 @@ You come across a goblin in the woods. What do you do?
   - else:
     You lose and limp away.
     ~ lose_hp(5)
+    -> status_check ->
     -> after_goblin
 }
 
@@ -85,6 +86,7 @@ The goblin takes your coins and leaves.
 // Logic: Lose all coins
 ~ peaceful_resolution = true
 ~ gain_sp(2)
+-> status_check ->
 ~ coins = 0
 -> after_goblin
 
