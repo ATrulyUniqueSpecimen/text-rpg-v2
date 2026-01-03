@@ -1,0 +1,13 @@
+var R=require("../../chunks/ssr/[turbopack]_runtime.js")("server/app/_not-found/page.js")
+R.c("server/chunks/ssr/text-rpg-v2_35ab1bf3._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__1fbeb200._.js")
+R.c("server/chunks/ssr/8af24_next_dist_esm_build_templates_app-page_6897ff38.js")
+R.c("server/chunks/ssr/[root-of-the-server]__ee580fb5._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__e4562330._.js")
+R.c("server/chunks/ssr/[root-of-the-server]__42822d5f._.js")
+R.c("server/chunks/ssr/text-rpg-v2_app_layout_tsx_1786d060._.js")
+R.c("server/chunks/ssr/8af24_next_dist_client_components_888bbd9f._.js")
+R.c("server/chunks/ssr/8af24_next_dist_client_components_builtin_forbidden_6d471df7.js")
+R.c("server/chunks/ssr/text-rpg-v2__next-internal_server_app__not-found_page_actions_0174783c.js")
+R.m(89090)
+module.exports=R.m(89090).exports

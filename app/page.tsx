@@ -74,7 +74,7 @@ export default function Page() {
     else if (newLines.length) setLines(prev => [...prev, ...newLines]);
 
     setChoices(s.currentChoices.map(c => ({ index: c.index, text: c.text })));
-    
+
     syncSidebar(s);
   }
 
@@ -227,14 +227,14 @@ export default function Page() {
 
     // inkjs InkList stringifies to comma-separated items.
     // Example: "ITEMS.rusty_sword, ITEMS.old_sack"
-    const s = typeof v === "string" ? v : (typeof v.toString === "function" ? v.toString() : "");
+    const s: string = typeof v === "string" ? v : (typeof v.toString === "function" ? v.toString() : "");
     if (!s) return [];
 
     return s
       .split(",")
-      .map(t => normalizeItemId(t))
+      .map((t: string) => normalizeItemId(t))
       .filter(Boolean)
-      .filter(id => id !== "none"); // don’t show "none" in inventory
+      .filter((id: string) => id !== "none"); // don’t show "none" in inventory
   }
 
   function syncSidebar(s: Story) {
