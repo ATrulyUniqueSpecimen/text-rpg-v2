@@ -2,6 +2,7 @@ VAR took_coins = false
 VAR took_sword = false
 VAR took_sack = false
 VAR took_armor = false
+VAR took_knife = false
 
 === find_goblin ===
 You come across a goblin in the woods. What do you do?
@@ -26,26 +27,25 @@ You come across a goblin in the woods. What do you do?
 -> after_goblin
 
 === loot_goblin ===
-You loot the goblin’s corpse.
 + {not took_coins} [Take 5 coins]
     ~ coins += 5
     ~ took_coins = true
-    You pocket the coins.
     -> loot_goblin
 + {not took_sword} [Take rusty sword]
     ~ take_item(ITEMS.rusty_sword)
     ~ took_sword = true
-    You grab the sword and put it away.
     -> loot_goblin
 + {not took_sack} [Take old sack]
     ~ take_item(ITEMS.old_sack)
     ~ took_sack = true
-    You pick up the sack and put it away.
     -> loot_goblin
 + {not took_armor} [Take leather armor]
     ~ take_item(ITEMS.leather_armor)
     ~ took_armor = true
-    You take the armor off the goblin's body.
+    -> loot_goblin
++ {not took_knife} [Take small knife]
+    ~ take_item(ITEMS.small_knife)
+    ~ took_knife = true
     -> loot_goblin
 + [Leave] 
     -> after_goblin

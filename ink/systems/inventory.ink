@@ -1,5 +1,5 @@
 // ALL INVENTORY ITEMS MUST BE HERE
-LIST ITEMS = rusty_sword, leather_armor, old_sack, none
+LIST ITEMS = rusty_sword, leather_armor, old_sack, small_knife, none
 VAR inv = ()
 
 VAR eq_weapon = ITEMS.none
@@ -18,25 +18,31 @@ VAR eq_ring = ITEMS.none
         ~ return "armor"
     - ITEMS.old_sack:
         ~ return "outfit"
+    - ITEMS.small_knife:
+        ~ return "weapon"
     - else:
         ~ return "none"
     }
 
 // Helper: Get the bonus for a specific stat from an item
 === function get_item_limit_bonus(item, stat) ===
-    // Define item stats here
     { item:
     - ITEMS.rusty_sword:
-        { stat == "STR":
-             ~ return 2
+        { stat:
+        - "STR": ~ return 2
         }
     - ITEMS.leather_armor:
-        { stat == "STR":
-             ~ return 4
+        { stat:
+        - "STR": ~ return 4
         }
     - ITEMS.old_sack:
-        { stat == "CHA":
-             ~ return -1
+        { stat:
+        - "CHA": ~ return -1
+        - "STR": ~ return 1
+        }
+    - ITEMS.small_knife:
+        { stat:
+        - "STR": ~ return 1
         }
     }
     ~ return 0
@@ -49,86 +55,73 @@ VAR eq_ring = ITEMS.none
         ~ return "Leather armor"
     - ITEMS.old_sack:
         ~ return "Old sack"
+    - ITEMS.small_knife:
+        ~ return "Small knife"
     - else:
         ~ return "{item}"
     }
 
 === inventory ===
-You check what you're carrying.
 // Iterate over all items in the inventory
 // Note: Ink lists are sets. We check availability.
     + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}] -> item_screen(ITEMS.rusty_sword)
     + { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}] -> item_screen(ITEMS.leather_armor)
     + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}] -> item_screen(ITEMS.old_sack)
+    + { inv ? ITEMS.small_knife } [{item_label(ITEMS.small_knife)}] -> item_screen(ITEMS.small_knife)
     + [Back] ->->
 
 // Generic Item Screen
 === item_screen(item) ===
 ~ temp slot = get_item_slot(item)
-You look at your {item_label(item)}.
-
-{ slot != "none":
-    It fits in the {slot} slot.
-    // Display stats if any - crude check or just generic info
-    ~ temp str_bonus = get_item_limit_bonus(item, "STR")
-    ~ temp cha_bonus = get_item_limit_bonus(item, "CHA")
-    { str_bonus != 0: (STR {str_bonus}) }
-    { cha_bonus != 0: (CHA {cha_bonus}) }
-- else:
-    It's not equippable.
-}
+~ temp str_b = get_item_limit_bonus(item, "STR")
+~ temp cha_b = get_item_limit_bonus(item, "CHA")
+~ temp wit_b = get_item_limit_bonus(item, "WIT")
 
 { slot == "weapon":
     { eq_weapon == item:
-        It's currently equipped.
-        + [Unequip] -> do_unequip_weapon(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_weapon(item)
     - else:
-        + [Equip] -> do_equip_weapon(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_weapon(item)
     }
 }
 
 { slot == "armor":
     { eq_armor == item:
-        It's currently equipped.
-        + [Unequip] -> do_unequip_armor(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_armor(item)
     - else:
-        + [Equip] -> do_equip_armor(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_armor(item)
     }
 }
-// Expand for other slots (outfit, hat, etc)
+
 { slot == "outfit":
     { eq_outfit == item:
-        It's currently equipped.
-        + [Unequip] -> do_unequip_outfit(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_outfit(item)
     - else:
-        + [Equip] -> do_equip_outfit(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_outfit(item)
     }
 }
 
 { slot == "hat":
     { eq_hat == item:
-        It's currently equipped.
-        + [Unequip] -> do_unequip_hat(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_hat(item)
     - else:
-        + [Equip] -> do_equip_hat(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_hat(item)
     }
 }
 
 { slot == "necklace":
     { eq_necklace == item:
-        It's currently equipped.
-        + [Unequip] -> do_unequip_necklace(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_necklace(item)
     - else:
-        + [Equip] -> do_equip_necklace(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_necklace(item)
     }
 }
 
 { slot == "ring":
     { eq_ring == item:
-        It's currently equipped.
-        + [Unequip] -> do_unequip_ring(item)
+        + [Unequip{ str_b > 0: (-{str_b} STR)}{ str_b < 0: (+{str_b * -1} STR)}{ cha_b > 0: (-{cha_b} CHA)}{ cha_b < 0: (+{cha_b * -1} CHA)}{ wit_b > 0: (-{wit_b} WIT)}{ wit_b < 0: (+{wit_b * -1} WIT)}] -> do_unequip_ring(item)
     - else:
-        + [Equip] -> do_equip_ring(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_ring(item)
     }
 }
 
@@ -138,62 +131,50 @@ You look at your {item_label(item)}.
 
 === do_equip_weapon(item) ===
 ~ eq_weapon = item
-You equip it.
 ->->
 
 === do_unequip_weapon(item) ===
 ~ eq_weapon = ITEMS.none
-You unequip it.
 ->->
 
 === do_equip_armor(item) ===
 ~ eq_armor = item
-You put it on.
 ->->
 
 === do_unequip_armor(item) ===
 ~ eq_armor = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_outfit(item) ===
 ~ eq_outfit = item
-You put it on.
 ->->
 
 === do_unequip_outfit(item) ===
 ~ eq_outfit = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_hat(item) ===
 ~ eq_hat = item
-You put it on.
 ->->
 
 === do_unequip_hat(item) ===
 ~ eq_hat = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_necklace(item) ===
 ~ eq_necklace = item
-You put it on.
 ->->
 
 === do_unequip_necklace(item) ===
 ~ eq_necklace = ITEMS.none
-You take it off.
 ->->
 
 === do_equip_ring(item) ===
 ~ eq_ring = item
-You put it on.
 ->->
 
 === do_unequip_ring(item) ===
 ~ eq_ring = ITEMS.none
-You take it off.
 ->->
 
 === do_drop(item) ===
