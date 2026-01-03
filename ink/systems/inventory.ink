@@ -125,8 +125,13 @@ VAR eq_ring = ITEMS.none
     }
 }
 
-+ [Drop] -> do_drop(item)
++ [Drop] -> drop_confirm(item)
 + [Back] ->->
+
+=== drop_confirm(item) ===
+Are you sure you want to drop {item_label(item)}?
++ [Yes] -> do_drop(item)
++ [No] -> item_screen(item)
 
 
 === do_equip_weapon(item) ===
