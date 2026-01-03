@@ -5,6 +5,7 @@ import { Story } from "inkjs";
 
 const SAVE_KEYS = ["ink_save_1", "ink_save_2", "ink_save_3"] as const;
 const ACTIVE_SLOT_KEY = "ink_active_slot";
+const MAX_HISTORY_LINES = 100;
 
 type ChoiceView = { index: number; text: string };
 
@@ -69,6 +70,10 @@ export default function Page() {
     try {
       s.state.LoadJson(saved);
       const lines = savedTranscript ? JSON.parse(savedTranscript) : [];
+      // Safety clamp on load
+      if (lines.length > MAX_HISTORY_LINES) {
+        lines.splice(0, lines.length - MAX_HISTORY_LINES);
+      }
       return { ok: true, loadedLines: lines };
     } catch {
       localStorage.removeItem(SAVE_KEYS[slot]);
@@ -214,8 +219,11 @@ export default function Page() {
 
     setLines(prev => {
       const updated = [...prev, ...newLines];
-      // We must save inside the setter or use a temp var to ensure we save the UPDATED list
-      // But standard way is to use the computed value.
+      // Limit history to prevent infinite storage growth
+      if (updated.length > MAX_HISTORY_LINES) {
+        updated.splice(0, updated.length - MAX_HISTORY_LINES);
+      }
+
       saveToSlot(story, activeSlot, updated);
       return updated;
     });
