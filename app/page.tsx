@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Story } from "inkjs";
 
 const SAVE_KEYS = ["ink_save_1", "ink_save_2", "ink_save_3"] as const;
@@ -296,6 +296,13 @@ export default function Page() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Auto-scroll to bottom when lines or choices change
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [lines, choices]);
+
   return (
     <main style={{ maxWidth: 720, margin: "40px auto", padding: 16 }}>
       {mode === "menu" && (
@@ -394,20 +401,35 @@ export default function Page() {
 
           <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
             {/* Left: story */}
-            <div style={{ flex: 1, minWidth: 0 }}>
+            <div
+              style={{
+                flex: 1,
+                minWidth: 0,
+                height: "60vh", // Fixed height to allow scrolling
+                overflowY: "auto",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 8,
+                padding: 16,
+                background: "rgba(0,0,0,0.2)",
+              }}
+            >
               <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
                 {lines.map((t, idx) => (
-                  <p key={idx}>{t}</p>
+                  <p key={idx} style={{ marginTop: 0, marginBottom: 16 }}>
+                    {t}
+                  </p>
                 ))}
               </div>
 
-              <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+              <div style={{ display: "grid", gap: 10, marginTop: 18, paddingBottom: 20 }}>
                 {choices.map(c => (
                   <button key={c.index} onClick={() => choose(c.index)}>
                     {c.text}
                   </button>
                 ))}
               </div>
+
+              <div ref={bottomRef} />
             </div>
 
             {/* Right: sidebar */}
