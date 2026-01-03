@@ -1,10 +1,3 @@
-VAR took_coins = false
-VAR took_sword = false
-VAR took_sack = false
-VAR took_armor = false
-VAR took_knife = false
-VAR took_potion = false
-VAR took_potion2 = false
 VAR goblin_defeated = false
 VAR peaceful_resolution = false
 
@@ -34,33 +27,33 @@ You come across a goblin in the woods. What do you do?
 }
 
 === loot_goblin ===
-+ {not took_coins} [Take 5 coins]
-    ~ coins += 5
-    ~ took_coins = true
++ {goblin_coins > 0} [Take {goblin_coins} coins]
+    ~ coins += goblin_coins
+    ~ goblin_coins = 0
     -> loot_goblin
-+ {not took_sword} [Take rusty sword]
++ {goblin_inv ? rusty_sword} [Take {item_label(ITEMS.rusty_sword)}]
     ~ take_item(ITEMS.rusty_sword)
-    ~ took_sword = true
+    ~ goblin_inv -= rusty_sword
     -> loot_goblin
-+ {not took_sack} [Take old sack]
++ {goblin_inv ? old_sack} [Take {item_label(ITEMS.old_sack)}]
     ~ take_item(ITEMS.old_sack)
-    ~ took_sack = true
+    ~ goblin_inv -= old_sack
     -> loot_goblin
-+ {not took_armor} [Take leather armor]
++ {goblin_inv ? leather_armor} [Take {item_label(ITEMS.leather_armor)}]
     ~ take_item(ITEMS.leather_armor)
-    ~ took_armor = true
+    ~ goblin_inv -= leather_armor
     -> loot_goblin
-+ {not took_knife} [Take small knife]
++ {goblin_inv ? small_knife} [Take {item_label(ITEMS.small_knife)}]
     ~ take_item(ITEMS.small_knife)
-    ~ took_knife = true
+    ~ goblin_inv -= small_knife
     -> loot_goblin
-+ {not took_potion} [Take potion of spirit]
++ {goblin_inv ? potion_of_spirit} [Take {item_label(ITEMS.potion_of_spirit)}]
     ~ take_item(ITEMS.potion_of_spirit)
-    ~ took_potion = true
+    ~ goblin_inv -= potion_of_spirit
     -> loot_goblin
-+ {not took_potion2} [Take potion of stupidity]
++ {goblin_inv ? potion_of_stupidity} [Take {item_label(ITEMS.potion_of_stupidity)}]
     ~ take_item(ITEMS.potion_of_stupidity)
-    ~ took_potion2 = true
+    ~ goblin_inv -= potion_of_stupidity
     -> loot_goblin
 + [Leave] 
     -> after_goblin
