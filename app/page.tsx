@@ -447,6 +447,8 @@ export default function Page() {
 
           <div style={{ marginTop: 18, opacity: 0.75, fontSize: 13 }}>
             Saves use localStorage, so they live per browser per device until deleted.
+            <br />
+            Important: using Incognito mode will prevent saving across sessions.
           </div>
         </div>
       )}

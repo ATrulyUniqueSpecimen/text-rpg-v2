@@ -26,8 +26,8 @@ Here is the step-by-step process to add a new item to the game.
         { item:
         ...
         - ITEMS.ring_of_intelligence:
-            { stat == "WIT":    // Or "INT" depending on your stat names
-                 ~ return 2
+            { stat:
+            - "WIT": ~ return 2
             }
         ...
         }
