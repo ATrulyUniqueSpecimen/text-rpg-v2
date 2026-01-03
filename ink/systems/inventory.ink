@@ -62,43 +62,18 @@ You check what you're carrying.
     + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}] -> item_screen(ITEMS.old_sack)
     + [Back] ->->
 
-// Helper: Format stat bonus string for button display (e.g., "(+4 STR)")
-=== function format_stat_bonus(item) ===
-    ~ temp str_bonus = get_item_limit_bonus(item, "STR")
-    ~ temp cha_bonus = get_item_limit_bonus(item, "CHA")
-    ~ temp wit_bonus = get_item_limit_bonus(item, "WIT")
-    
-    // Return the first non-zero bonus found
-    { str_bonus > 0:
-        ~ return "(+{str_bonus} STR)"
-    }
-    { str_bonus < 0:
-        ~ return "({str_bonus} STR)"
-    }
-    { cha_bonus > 0:
-        ~ return "(+{cha_bonus} CHA)"
-    }
-    { cha_bonus < 0:
-        ~ return "({cha_bonus} CHA)"
-    }
-    { wit_bonus > 0:
-        ~ return "(+{wit_bonus} WIT)"
-    }
-    { wit_bonus < 0:
-        ~ return "({wit_bonus} WIT)"
-    }
-    ~ return ""
-
 // Generic Item Screen
 === item_screen(item) ===
 ~ temp slot = get_item_slot(item)
-~ temp stat_suffix = format_stat_bonus(item)
+~ temp str_b = get_item_limit_bonus(item, "STR")
+~ temp cha_b = get_item_limit_bonus(item, "CHA")
+~ temp wit_b = get_item_limit_bonus(item, "WIT")
 
 { slot == "weapon":
     { eq_weapon == item:
         + [Unequip] -> do_unequip_weapon(item)
     - else:
-        + [Equip {stat_suffix}] -> do_equip_weapon(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_weapon(item)
     }
 }
 
@@ -106,7 +81,7 @@ You check what you're carrying.
     { eq_armor == item:
         + [Unequip] -> do_unequip_armor(item)
     - else:
-        + [Equip {stat_suffix}] -> do_equip_armor(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_armor(item)
     }
 }
 
@@ -114,7 +89,7 @@ You check what you're carrying.
     { eq_outfit == item:
         + [Unequip] -> do_unequip_outfit(item)
     - else:
-        + [Equip {stat_suffix}] -> do_equip_outfit(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_outfit(item)
     }
 }
 
@@ -122,7 +97,7 @@ You check what you're carrying.
     { eq_hat == item:
         + [Unequip] -> do_unequip_hat(item)
     - else:
-        + [Equip {stat_suffix}] -> do_equip_hat(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_hat(item)
     }
 }
 
@@ -130,7 +105,7 @@ You check what you're carrying.
     { eq_necklace == item:
         + [Unequip] -> do_unequip_necklace(item)
     - else:
-        + [Equip {stat_suffix}] -> do_equip_necklace(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_necklace(item)
     }
 }
 
@@ -138,7 +113,7 @@ You check what you're carrying.
     { eq_ring == item:
         + [Unequip] -> do_unequip_ring(item)
     - else:
-        + [Equip {stat_suffix}] -> do_equip_ring(item)
+        + [Equip{ str_b > 0: (+{str_b} STR)}{ str_b < 0: ({str_b} STR)}{ cha_b > 0: (+{cha_b} CHA)}{ cha_b < 0: ({cha_b} CHA)}{ wit_b > 0: (+{wit_b} WIT)}{ wit_b < 0: ({wit_b} WIT)}] -> do_equip_ring(item)
     }
 }
 
