@@ -33,7 +33,17 @@ Here is the step-by-step process to add a new item to the game.
         }
     ```
 
-4.  **Define Label**: Add the display name in `item_label` (used inside Ink text).
+4.  **Add to Inventory List**: You MUST add the item to the main `inventory` knot so it appears in the list.
+    **IMPORTANT**: Use `+` (sticky choice), NOT `*`. Using `*` will make the item disappear after you look at it once.
+    ```ink
+    === inventory ===
+        ...
+        + { inv ? ITEMS.ring_of_intelligence } [{item_label(ITEMS.ring_of_intelligence)}] -> item_screen(ITEMS.ring_of_intelligence)
+        ...
+        + [Back] ->->
+    ```
+
+5.  **Define Label**: Add the display name in `item_label` (used inside Ink text).
     ```ink
     === function item_label(item) ===
         { item:
@@ -57,3 +67,4 @@ Here is the step-by-step process to add a new item to the game.
 ## 3. Verify
 -   Recompile your Ink story: `.\inklecate.exe -o public/story.json ink/story.ink`
 -   Run the game and test!
+
