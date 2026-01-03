@@ -4,6 +4,9 @@ VAR took_sack = false
 VAR took_armor = false
 VAR took_knife = false
 VAR took_potion = false
+VAR took_potion2 = false
+VAR goblin_defeated = false
+VAR peaceful_resolution = false
 
 === find_goblin ===
 You come across a goblin in the woods. What do you do?
@@ -20,11 +23,12 @@ You come across a goblin in the woods. What do you do?
 === fight_goblin ===
 { skill_check("STR", 10):
     You win.
+    ~ goblin_defeated = true
     + [Loot the body] -> loot_goblin
     + [Leave] -> after_goblin
   - else:
     You lose and limp away.
-    ~ HP_CUR -= 5
+    ~ lose_hp(5)
     -> after_goblin
 }
 
@@ -53,12 +57,18 @@ You come across a goblin in the woods. What do you do?
     ~ take_item(ITEMS.potion_of_spirit)
     ~ took_potion = true
     -> loot_goblin
++ {not took_potion2} [Take potion of stupidity]
+    ~ take_item(ITEMS.potion_of_stupidity)
+    ~ took_potion2 = true
+    -> loot_goblin
 + [Leave] 
     -> after_goblin
 
 === persuade ===
 { skill_check("CHA", 10):
-    It surrenders. -> after_goblin
+    It surrenders. 
+    ~ peaceful_resolution = true
+    -> after_goblin
   - else:
     It laughs and attacks. -> attack
 }
@@ -73,7 +83,8 @@ You drop your weapon.
 
 The goblin takes your coins and leaves.
 // Logic: Lose all coins
-~ SP_CUR += 2
+~ peaceful_resolution = true
+~ gain_sp(2)
 ~ coins = 0
 -> after_goblin
 

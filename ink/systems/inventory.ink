@@ -1,5 +1,5 @@
 // ALL INVENTORY ITEMS MUST BE HERE
-LIST ITEMS = rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, none
+LIST ITEMS = rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, potion_of_stupidity, none
 VAR inv = ()
 
 VAR eq_weapon = ITEMS.none
@@ -21,6 +21,8 @@ VAR eq_ring = ITEMS.none
     - ITEMS.small_knife:
         ~ return "weapon"
     - ITEMS.potion_of_spirit:
+        ~ return "consumable"
+    - ITEMS.potion_of_stupidity:
         ~ return "consumable"
     - else:
         ~ return "none"
@@ -58,6 +60,10 @@ VAR eq_ring = ITEMS.none
         { stat:
         - "SP_CUR": ~ return 2
         }
+    - ITEMS.potion_of_stupidity:
+        { stat:
+        - "WIT": ~ return -2
+        }
     }
     ~ return 0
 
@@ -73,6 +79,8 @@ VAR eq_ring = ITEMS.none
         ~ return "Small knife"
     - ITEMS.potion_of_spirit:
         ~ return "Potion of Spirit"
+    - ITEMS.potion_of_stupidity:
+        ~ return "Potion of Stupidity"
     - else:
         ~ return "{item}"
     }
@@ -96,6 +104,7 @@ VAR eq_ring = ITEMS.none
     + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}{is_equipped(ITEMS.old_sack): (Equipped)}] -> item_screen(ITEMS.old_sack)
     + { inv ? ITEMS.small_knife } [{item_label(ITEMS.small_knife)}{is_equipped(ITEMS.small_knife): (Equipped)}] -> item_screen(ITEMS.small_knife)
     + { inv ? ITEMS.potion_of_spirit } [{item_label(ITEMS.potion_of_spirit)}] -> item_screen(ITEMS.potion_of_spirit)
+    + { inv ? ITEMS.potion_of_stupidity } [{item_label(ITEMS.potion_of_stupidity)}] -> item_screen(ITEMS.potion_of_stupidity)
     + [Back] ->->
 
 // Generic Item Screen
@@ -185,9 +194,9 @@ Are you sure you want to use {item_label(item)}?
 ~ CHA_BASE += get_item_use_bonus(item, "CHA")
 ~ WIT_BASE += get_item_use_bonus(item, "WIT")
 ~ HP_BASE += get_item_use_bonus(item, "HP_MAX")
-~ HP_CUR += get_item_use_bonus(item, "HP_CUR")
+~ lose_hp(-get_item_use_bonus(item, "HP_CUR"))
 ~ SP_BASE += get_item_use_bonus(item, "SP_MAX")
-~ SP_CUR += get_item_use_bonus(item, "SP_CUR")
+~ gain_sp(get_item_use_bonus(item, "SP_CUR"))
 ~ inv -= item
 You use {item_label(item)}.
 + [Back] -> inventory

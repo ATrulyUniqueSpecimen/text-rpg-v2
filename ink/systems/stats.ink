@@ -58,3 +58,25 @@ VAR char_gender = "male"
 - else:
     ~ return false
 }
+
+
+=== function lose_hp(amt) ===
+~ HP_CUR -= amt
+{
+- HP_CUR > HP_BASE + EQUIPPED_STAT_BONUS("HP"):
+    ~ HP_CUR = HP_BASE + EQUIPPED_STAT_BONUS("HP")
+- HP_CUR <= 0:
+    ~ HP_CUR = 0
+    // EVENT: HP reached zero. Add logic here later.
+}
+
+
+=== function gain_sp(amt) ===
+~ SP_CUR += amt
+{
+- SP_CUR > SP_BASE + EQUIPPED_STAT_BONUS("SP"):
+    ~ SP_CUR = SP_BASE + EQUIPPED_STAT_BONUS("SP")
+    // EVENT: SP reached max. Add logic here later.
+- SP_CUR < 0:
+    ~ SP_CUR = 0
+}
