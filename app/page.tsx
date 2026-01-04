@@ -548,7 +548,7 @@ export default function Page() {
 
   return (
     <div style={{ minHeight: "100vh", background: bgColor, color: textColor, transition: "background 0.3s ease, color 0.3s ease" }}>
-      <main style={{ maxWidth: 720, margin: "0 auto", padding: "40px 16px" }}>
+      <main style={{ maxWidth: mode === "game" ? 1000 : 720, margin: "0 auto", padding: "40px 16px", width: "100%", boxSizing: "border-box" }}>
         {mode === "menu" && (
           <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", justifyContent: "center", position: "relative" }}>
             {menuView === "splash" && (
@@ -998,7 +998,7 @@ export default function Page() {
                   })}
                 </div>
 
-                <div style={{ marginBottom: 24, position: "relative", height: 180, maxWidth: isMobileView ? "100%" : 260 }}>
+                <div style={{ marginBottom: 24, position: "relative", height: 180, width: isMobileView ? "100%" : 260, maxWidth: 260, margin: isMobileView ? "0 auto" : undefined }}>
                   <div style={{
                     position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)",
                     width: 200, height: 480,
@@ -1006,7 +1006,7 @@ export default function Page() {
                     backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center",
                     opacity: 0.6, filter: isDarkMode ? "invert(1)" : "none"
                   }} />
-                  <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.3 }} viewBox="0 0 260 180" preserveAspectRatio="xMidYMid meet">
+                  <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.3 }}>
                     <line x1={62} y1={24} x2={130} y2={15 + avatarY} stroke={textColor} strokeWidth="1" />
                     <line x1={62} y1={84} x2={110} y2={40 + avatarY} stroke={textColor} strokeWidth="1" />
                     <line x1={62} y1={144} x2={92} y2={90 + avatarY} stroke={textColor} strokeWidth="1" />
@@ -1028,7 +1028,7 @@ export default function Page() {
                     const isRing = item.id === "ring";
                     return (
                       <div key={item.id} className="equipment-slot" style={{
-                        position: "absolute", left: `${(item.x / 260) * 100}%`, top: item.y, width: 48, height: 48,
+                        position: "absolute", left: item.x, top: item.y, width: 48, height: 48,
                         background: isDarkMode ? "transparent" : "rgba(255,255,255,0.4)",
                         border: `2px solid ${isEquipped ? "rgba(77,77,255,0.8)" : "rgba(128,128,128,0.2)"}`,
                         borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
