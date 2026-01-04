@@ -95,7 +95,7 @@ export default function Page() {
   const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
   const [uiEquippedRing, setUiEquippedRing] = useState("none");
 
-  const [uiInventory, setUiInventory] = useState<string[]>([]);
+  const [uiInventory, setUiInventory] = useState<{ name: string; count: number }[]>([]);
   const [uiStats, setUiStats] = useState<{
     STR: { base: number; total: number };
     CHA: { base: number; total: number };
@@ -375,7 +375,13 @@ export default function Page() {
 
     const invVal = (s as any).variablesState["inv"];
     const invIds = inkListToIds(invVal);
-    setUiInventory(invIds.map(pretty));
+    // Read item counts from Ink
+    const invWithCounts = invIds.map(id => {
+      const countVar = `${id}_count`;
+      const count = asNumber((s as any).variablesState[countVar], 1);
+      return { name: pretty(id), count };
+    });
+    setUiInventory(invWithCounts);
 
     const gRaw = asString((s as any).variablesState["char_gender"], "male");
     setGender(gRaw as any);
@@ -1027,79 +1033,82 @@ export default function Page() {
                   <div style={{ opacity: 0.5, fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, marginBottom: 8 }}>Inventory</div>
                   {uiInventory.length === 0 ? <div style={{ opacity: 0.4, fontSize: 13, fontStyle: "italic" }}>No items</div> : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                      {uiInventory.map(item => <div key={item} style={{ fontSize: 13, background: "rgba(128,128,128,0.1)", padding: "4px 8px", borderRadius: 4 }}>{item}</div>)}
+                      {uiInventory.map(item => <div key={item.name} style={{ fontSize: 13, background: "rgba(128,128,128,0.1)", padding: "4px 8px", borderRadius: 4 }}>{item.name}{item.count > 1 && ` (${item.count})`}</div>)}
                     </div>
                   )}
                 </div>
               </aside>
             </div>
           </div>
-        )}
-      </main>
+        )
+        }
+      </main >
 
       {/* Achievement Notification Popup */}
-      {notification && (
-        <div style={{
-          position: "fixed", top: 20, right: 20, zIndex: 3000,
-          background: isDarkMode ? "#1e1e1e" : "#fff",
-          border: "2px solid rgba(77,77,255,0.8)",
-          borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
-          boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
-          animation: notification.status === "entering" ? "slideInRight 0.5s ease forwards" : notification.status === "exiting" ? "slideOutRight 0.5s ease forwards" : "none"
-        }}>
+      {
+        notification && (
           <div style={{
-            position: "relative", width: 56, height: 56,
-            background: isDarkMode ? "transparent" : "rgba(255,255,255,0.4)",
+            position: "fixed", top: 20, right: 20, zIndex: 3000,
+            background: isDarkMode ? "#1e1e1e" : "#fff",
             border: "2px solid rgba(77,77,255,0.8)",
-            borderRadius: 12, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 0 10px rgba(77,77,255,0.3)"
+            borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            animation: notification.status === "entering" ? "slideInRight 0.5s ease forwards" : notification.status === "exiting" ? "slideOutRight 0.5s ease forwards" : "none"
           }}>
-            <svg viewBox="0 0 24 24" style={{ width: "70%", height: "70%" }}>
-              <defs>
-                <linearGradient id="pop-grad-vertical" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#ff4d4d" />
-                  <stop offset="100%" stopColor="#4d4dff" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
-                fill="rgba(128,128,128,0.4)"
-              />
-              <path
-                d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
-                fill="url(#pop-grad-vertical)"
-                style={{
-                  clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(100% 0 0 0)",
-                  transition: "clip-path 0.5s ease-out"
-                }}
-              />
-            </svg>
-          </div>
-          <div>
-            <div style={{ position: "relative" }}>
-              <div style={{
-                fontWeight: 800, fontSize: 16, marginBottom: 2,
-                color: "rgba(128,128,128,0.6)"
-              }}>
-                Achievement Unlocked!
-              </div>
-              <div style={{
-                position: "absolute", top: 0, left: 0,
-                fontWeight: 800, fontSize: 16, width: "100%",
-                background: "linear-gradient(90deg, #ff4d4d, #4d4dff)",
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
-                transition: "clip-path 0.5s ease-out",
-                pointerEvents: "none"
-              }}>
-                Achievement Unlocked!
-              </div>
+            <div style={{
+              position: "relative", width: 56, height: 56,
+              background: isDarkMode ? "transparent" : "rgba(255,255,255,0.4)",
+              border: "2px solid rgba(77,77,255,0.8)",
+              borderRadius: 12, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 0 10px rgba(77,77,255,0.3)"
+            }}>
+              <svg viewBox="0 0 24 24" style={{ width: "70%", height: "70%" }}>
+                <defs>
+                  <linearGradient id="pop-grad-vertical" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#ff4d4d" />
+                    <stop offset="100%" stopColor="#4d4dff" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
+                  fill="rgba(128,128,128,0.4)"
+                />
+                <path
+                  d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
+                  fill="url(#pop-grad-vertical)"
+                  style={{
+                    clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(100% 0 0 0)",
+                    transition: "clip-path 0.5s ease-out"
+                  }}
+                />
+              </svg>
             </div>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>{notification.name}</div>
-            <div style={{ fontSize: 12, opacity: 0.6 }}>{notification.desc}</div>
+            <div>
+              <div style={{ position: "relative" }}>
+                <div style={{
+                  fontWeight: 800, fontSize: 16, marginBottom: 2,
+                  color: "rgba(128,128,128,0.6)"
+                }}>
+                  Achievement Unlocked!
+                </div>
+                <div style={{
+                  position: "absolute", top: 0, left: 0,
+                  fontWeight: 800, fontSize: 16, width: "100%",
+                  background: "linear-gradient(90deg, #ff4d4d, #4d4dff)",
+                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                  clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+                  transition: "clip-path 0.5s ease-out",
+                  pointerEvents: "none"
+                }}>
+                  Achievement Unlocked!
+                </div>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 14 }}>{notification.name}</div>
+              <div style={{ fontSize: 12, opacity: 0.6 }}>{notification.desc}</div>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Screen Transition Overlay */}
       <div style={{
@@ -1132,6 +1141,6 @@ export default function Page() {
           to { background-position: 0% 0%; }
         }
       `}</style>
-    </div>
+    </div >
   );
 }

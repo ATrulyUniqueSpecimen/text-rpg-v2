@@ -64,7 +64,32 @@ Here is the step-by-step process to add a new item to the game.
         }
     ```
 
-6.  **Update Generic Looting**: Add the item as a choice in the `loot_npc` knot in `ink/systems/npcs.ink`.
+6.  **Define Gold Value**: Add the item's sell value in `get_item_value`.
+    ```ink
+    === function get_item_value(item) ===
+        { item:
+        ...
+        - ITEMS.ring_of_intelligence: ~ return 25
+        ...
+        }
+    ```
+
+7.  **Add Count Variable**: Add a global variable for the item count (for duplicate support).
+    ```ink
+    VAR ring_of_intelligence_count = 0
+    ```
+
+8.  **Update `get_item_count`**: Add a case to return the count.
+    ```ink
+    - ITEMS.ring_of_intelligence: ~ return ring_of_intelligence_count
+    ```
+
+9.  **Update `set_item_count`**: Add a case to set the count.
+    ```ink
+    - ITEMS.ring_of_intelligence: ~ ring_of_intelligence_count = count
+    ```
+
+10. **Update Generic Looting**: Add the item as a choice in the `loot_npc` knot in `ink/systems/npcs.ink`.
     ```ink
     + {npc_inv ? ITEMS.ring_of_intelligence} [Take {item_label(ITEMS.ring_of_intelligence)}]
         ~ take_item(ITEMS.ring_of_intelligence)

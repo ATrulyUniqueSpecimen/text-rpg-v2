@@ -9,6 +9,49 @@ VAR eq_hat = ITEMS.none
 VAR eq_necklace = ITEMS.none
 VAR eq_ring = ITEMS.none
 
+// Item counts (for duplicate support)
+VAR rusty_sword_count = 0
+VAR leather_armor_count = 0
+VAR old_sack_count = 0
+VAR small_knife_count = 0
+VAR potion_of_spirit_count = 0
+VAR potion_of_stupidity_count = 0
+
+// Helper: Get item gold value
+=== function get_item_value(item) ===
+    { item:
+    - ITEMS.rusty_sword: ~ return 5
+    - ITEMS.leather_armor: ~ return 15
+    - ITEMS.old_sack: ~ return 1
+    - ITEMS.small_knife: ~ return 3
+    - ITEMS.potion_of_spirit: ~ return 10
+    - ITEMS.potion_of_stupidity: ~ return 8
+    - else: ~ return 0
+    }
+
+// Helper: Get item count
+=== function get_item_count(item) ===
+    { item:
+    - ITEMS.rusty_sword: ~ return rusty_sword_count
+    - ITEMS.leather_armor: ~ return leather_armor_count
+    - ITEMS.old_sack: ~ return old_sack_count
+    - ITEMS.small_knife: ~ return small_knife_count
+    - ITEMS.potion_of_spirit: ~ return potion_of_spirit_count
+    - ITEMS.potion_of_stupidity: ~ return potion_of_stupidity_count
+    - else: ~ return 0
+    }
+
+// Helper: Set item count
+=== function set_item_count(item, count) ===
+    { item:
+    - ITEMS.rusty_sword: ~ rusty_sword_count = count
+    - ITEMS.leather_armor: ~ leather_armor_count = count
+    - ITEMS.old_sack: ~ old_sack_count = count
+    - ITEMS.small_knife: ~ small_knife_count = count
+    - ITEMS.potion_of_spirit: ~ potion_of_spirit_count = count
+    - ITEMS.potion_of_stupidity: ~ potion_of_stupidity_count = count
+    }
+
 // Helper: Get the equipment slot for an item
 === function get_item_slot(item) ===
     { item:
@@ -98,13 +141,13 @@ VAR eq_ring = ITEMS.none
 
 === inventory ===
 // Iterate over all items in the inventory
-// Note: Ink lists are sets. We check availability.
-    + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}{is_equipped(ITEMS.rusty_sword): (Equipped)}] -> item_screen(ITEMS.rusty_sword)
-    + { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}{is_equipped(ITEMS.leather_armor): (Equipped)}] -> item_screen(ITEMS.leather_armor)
-    + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}{is_equipped(ITEMS.old_sack): (Equipped)}] -> item_screen(ITEMS.old_sack)
-    + { inv ? ITEMS.small_knife } [{item_label(ITEMS.small_knife)}{is_equipped(ITEMS.small_knife): (Equipped)}] -> item_screen(ITEMS.small_knife)
-    + { inv ? ITEMS.potion_of_spirit } [{item_label(ITEMS.potion_of_spirit)}] -> item_screen(ITEMS.potion_of_spirit)
-    + { inv ? ITEMS.potion_of_stupidity } [{item_label(ITEMS.potion_of_stupidity)}] -> item_screen(ITEMS.potion_of_stupidity)
+// Note: Ink lists are sets. Count shown when > 1.
+    + { inv ? ITEMS.rusty_sword } [{item_label(ITEMS.rusty_sword)}{is_equipped(ITEMS.rusty_sword): (Equipped)}{get_item_count(ITEMS.rusty_sword) > 1: (x{get_item_count(ITEMS.rusty_sword)})}] -> item_screen(ITEMS.rusty_sword)
+    + { inv ? ITEMS.leather_armor } [{item_label(ITEMS.leather_armor)}{is_equipped(ITEMS.leather_armor): (Equipped)}{get_item_count(ITEMS.leather_armor) > 1: (x{get_item_count(ITEMS.leather_armor)})}] -> item_screen(ITEMS.leather_armor)
+    + { inv ? ITEMS.old_sack } [{item_label(ITEMS.old_sack)}{is_equipped(ITEMS.old_sack): (Equipped)}{get_item_count(ITEMS.old_sack) > 1: (x{get_item_count(ITEMS.old_sack)})}] -> item_screen(ITEMS.old_sack)
+    + { inv ? ITEMS.small_knife } [{item_label(ITEMS.small_knife)}{is_equipped(ITEMS.small_knife): (Equipped)}{get_item_count(ITEMS.small_knife) > 1: (x{get_item_count(ITEMS.small_knife)})}] -> item_screen(ITEMS.small_knife)
+    + { inv ? ITEMS.potion_of_spirit } [{item_label(ITEMS.potion_of_spirit)}{get_item_count(ITEMS.potion_of_spirit) > 1: (x{get_item_count(ITEMS.potion_of_spirit)})}] -> item_screen(ITEMS.potion_of_spirit)
+    + { inv ? ITEMS.potion_of_stupidity } [{item_label(ITEMS.potion_of_stupidity)}{get_item_count(ITEMS.potion_of_stupidity) > 1: (x{get_item_count(ITEMS.potion_of_stupidity)})}] -> item_screen(ITEMS.potion_of_stupidity)
     + [Back] ->->
 
 // Generic Item Screen
@@ -198,7 +241,14 @@ Are you sure you want to use {item_label(item)}?
 ~ SP_BASE += get_item_use_bonus(item, "SP_MAX")
 ~ gain_sp(get_item_use_bonus(item, "SP_CUR"))
 -> status_check ->
-~ inv -= item
+
+// Decrement count
+~ temp current = get_item_count(item)
+~ set_item_count(item, current - 1)
+{ get_item_count(item) <= 0:
+    ~ inv -= item
+}
+
 You use {item_label(item)}.
 + [Back] -> inventory
 
@@ -252,32 +302,47 @@ You use {item_label(item)}.
 ->->
 
 === do_drop(item) ===
-// Auto-unequip if dropped
-{ eq_weapon == item:
-    ~ eq_weapon = ITEMS.none
-}
-{ eq_armor == item:
-    ~ eq_armor = ITEMS.none
-}
-{ eq_outfit == item:
-    ~ eq_outfit = ITEMS.none
-}
-{ eq_hat == item:
-    ~ eq_hat = ITEMS.none
-}
-{ eq_necklace == item:
-    ~ eq_necklace = ITEMS.none
-}
-{ eq_ring == item:
-    ~ eq_ring = ITEMS.none
-}
-// Add other slots logic here if expanded
+~ temp current = get_item_count(item)
+~ temp equipped = is_equipped(item)
 
-~ inv -= item
+// Only allow drop if we have more than 1, OR we have 1 and it's not equipped
+{ current <= 1 && equipped:
+    You can't drop your only {item_label(item)} while it's equipped.
+    ->->
+}
+
+// Decrement count
+~ set_item_count(item, current - 1)
+
+// If count is now 0, remove from inv and unequip
+{ get_item_count(item) <= 0:
+    { eq_weapon == item: 
+        ~ eq_weapon = ITEMS.none 
+    }
+    { eq_armor == item: 
+        ~ eq_armor = ITEMS.none 
+    }
+    { eq_outfit == item: 
+        ~ eq_outfit = ITEMS.none 
+    }
+    { eq_hat == item: 
+        ~ eq_hat = ITEMS.none 
+    }
+    { eq_necklace == item: 
+        ~ eq_necklace = ITEMS.none 
+    }
+    { eq_ring == item: 
+        ~ eq_ring = ITEMS.none 
+    }
+    ~ inv -= item
+}
+
 You drop your {item_label(item)}.
 ->->
 
-// Helper to add an item "safely" (handling duplicates isn't an issue with sets, but for feedback)
+// Helper to add an item (increments count, adds to inv set if first)
 === function take_item(item) ===
+    ~ temp current = get_item_count(item)
+    ~ set_item_count(item, current + 1)
     ~ inv += item
     ~ return true
