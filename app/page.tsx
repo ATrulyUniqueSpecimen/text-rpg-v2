@@ -117,6 +117,15 @@ export default function Page() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [pendingDarkMode, setPendingDarkMode] = useState(true);
 
+  const [isMobileView, setIsMobileView] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("ink_mobile_view");
+      if (saved !== null) return saved === "true";
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
   const [achievements, setAchievements] = useState<Record<string, boolean>>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("ink_achievements");
@@ -522,6 +531,7 @@ export default function Page() {
   function confirmTheme() {
     setIsDarkMode(pendingDarkMode);
     localStorage.setItem("ink_theme", pendingDarkMode ? "dark" : "light");
+    setMenuView("splash");
   }
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -597,7 +607,7 @@ export default function Page() {
                           <div style={{ fontSize: 12, opacity: 0.5 }}>{slotHasSave[slot] ? "Save Data Present" : "Empty Slot"}</div>
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: 8 }}>
+                      <div style={{ display: "flex", gap: 8, justifyContent: isMobileView && slotHasSave[slot] ? "center" : "flex-end", flexWrap: "wrap" }}>
                         {slotHasSave[slot] ? (
                           <>
                             <button onClick={() => loadSlot(slot)} style={{ background: "linear-gradient(90deg, #ff4d4d, #4d4dff)", border: "none", color: "#fff", cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>Load</button>
@@ -722,6 +732,26 @@ export default function Page() {
                     <div style={{
                       width: 20, height: 20, background: "#fff", borderRadius: 10, position: "absolute",
                       top: 3, left: pendingDarkMode ? 27 : 3, transition: "all 0.3s ease", boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                    }} />
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, border: `1px solid ${borderColor}`, borderRadius: 10, marginTop: 12 }}>
+                  <span>Mobile View</span>
+                  <div
+                    onClick={() => {
+                      const newVal = !isMobileView;
+                      setIsMobileView(newVal);
+                      localStorage.setItem("ink_mobile_view", String(newVal));
+                    }}
+                    style={{
+                      width: 50, height: 26, background: isMobileView ? "linear-gradient(90deg, #ff4d4d, #4d4dff)" : "rgba(128,128,128,0.3)",
+                      borderRadius: 13, position: "relative", cursor: "pointer", transition: "all 0.3s ease"
+                    }}
+                  >
+                    <div style={{
+                      width: 20, height: 20, background: "#fff", borderRadius: 10, position: "absolute",
+                      top: 3, left: isMobileView ? 27 : 3, transition: "all 0.3s ease", boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
                     }} />
                   </div>
                 </div>
@@ -865,7 +895,7 @@ export default function Page() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+            <div style={{ display: "flex", flexDirection: isMobileView ? "column" : "row", gap: 16, alignItems: isMobileView ? "stretch" : "flex-start" }}>
               <div
                 ref={scrollContainerRef}
                 style={{
@@ -904,7 +934,7 @@ export default function Page() {
 
               <aside
                 style={{
-                  width: 260,
+                  width: isMobileView ? "100%" : 260,
                   border: `1px solid ${borderColor}`,
                   borderRadius: 12,
                   padding: 16,
