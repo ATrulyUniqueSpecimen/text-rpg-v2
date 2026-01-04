@@ -4,7 +4,7 @@ VAR peaceful_resolution = false
 === find_goblin ===
 You come across a goblin in the woods. What do you do?
 + [Fight it] -> attack_goblin
-+ [Persuade it to surrender] -> persuade_goblin
++ [Persuade it to follow you] -> persuade_goblin
 + [Surrender] -> surrender_goblin
 + [Check inventory] 
     -> inventory ->
@@ -32,8 +32,9 @@ You come across a goblin in the woods. What do you do?
 
 === persuade_goblin ===
 { skill_check("CHA", 10):
-    It surrenders. 
+    The goblin looks impressed by your words. 
     ~ peaceful_resolution = true
+    -> recruit_companion(NPCS.npc_goblin) ->
     -> after_goblin
   - else:
     It laughs and attacks. -> attack_goblin

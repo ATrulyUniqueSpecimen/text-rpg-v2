@@ -3,10 +3,45 @@
 
 LIST NPCS = (npc_none), npc_goblin, npc_kobold
 
+// Current companion (only one at a time)
+VAR current_companion = NPCS.npc_none
+
+// Goblin data
 VAR goblin_inv = (rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, potion_of_stupidity)
 VAR goblin_coins = 5
+VAR goblin_eq_weapon = ITEMS.rusty_sword
+VAR goblin_eq_armor = ITEMS.none
+VAR goblin_eq_outfit = ITEMS.old_sack
+VAR goblin_eq_hat = ITEMS.none
+VAR goblin_eq_necklace = ITEMS.none
+VAR goblin_eq_ring = ITEMS.none
+
+// Kobold data
 VAR kobold_inv = (rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, potion_of_stupidity)
 VAR kobold_coins = 5
+VAR kobold_eq_weapon = ITEMS.none
+VAR kobold_eq_armor = ITEMS.none
+VAR kobold_eq_outfit = ITEMS.none
+VAR kobold_eq_hat = ITEMS.none
+VAR kobold_eq_necklace = ITEMS.none
+VAR kobold_eq_ring = ITEMS.none
+
+// NPC Names
+=== function get_npc_name(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return "Goblin"
+    - NPCS.npc_kobold: ~ return "Kobold"
+    - else: ~ return "Unknown"
+    }
+
+// NPC Gender (male, female, other)
+=== function get_npc_gender(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return "male"
+    - NPCS.npc_kobold: ~ return "female"
+    - else: ~ return "other"
+    }
+
 
 === function get_npc_stat(npc, stat) ===
     { npc:
@@ -98,3 +133,71 @@ VAR kobold_coins = 5
 
 + [Leave]
     ->->
+
+// Equipment Getters
+=== function get_npc_eq_weapon(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return goblin_eq_weapon
+    - NPCS.npc_kobold: ~ return kobold_eq_weapon
+    - else: ~ return ITEMS.none
+    }
+
+=== function get_npc_eq_armor(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return goblin_eq_armor
+    - NPCS.npc_kobold: ~ return kobold_eq_armor
+    - else: ~ return ITEMS.none
+    }
+
+=== function get_npc_eq_outfit(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return goblin_eq_outfit
+    - NPCS.npc_kobold: ~ return kobold_eq_outfit
+    - else: ~ return ITEMS.none
+    }
+
+=== function get_npc_eq_hat(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return goblin_eq_hat
+    - NPCS.npc_kobold: ~ return kobold_eq_hat
+    - else: ~ return ITEMS.none
+    }
+
+=== function get_npc_eq_necklace(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return goblin_eq_necklace
+    - NPCS.npc_kobold: ~ return kobold_eq_necklace
+    - else: ~ return ITEMS.none
+    }
+
+=== function get_npc_eq_ring(npc) ===
+    { npc:
+    - NPCS.npc_goblin: ~ return goblin_eq_ring
+    - NPCS.npc_kobold: ~ return kobold_eq_ring
+    - else: ~ return ITEMS.none
+    }
+
+// Companion Recruitment
+=== recruit_companion(npc) ===
+~ temp npc_name = get_npc_name(npc)
+
+{ current_companion != NPCS.npc_none:
+    ~ temp old_name = get_npc_name(current_companion)
+    You already have {old_name} as a companion. Replace them with {npc_name}?
+    + [Yes, replace companion]
+        {old_name} leaves your party.
+        ~ current_companion = npc
+        {npc_name} joins you!
+        ->->
+    + [No, keep current companion]
+        ->->
+- else:
+    {npc_name} offers to join you.
+    + [Accept]
+        ~ current_companion = npc
+        {npc_name} joins you!
+        ->->
+    + [Decline]
+        {npc_name} nods and leaves.
+        ->->
+}
