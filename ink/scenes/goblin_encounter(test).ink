@@ -3,14 +3,14 @@ VAR peaceful_resolution = false
 
 === find_goblin ===
 You come across a goblin in the woods. What do you do?
-+ [Fight it] -> attack
-+ [Persuade it to surrender] -> persuade
-+ [Surrender] -> surrender
++ [Fight it] -> attack_goblin
++ [Persuade it to surrender] -> persuade_goblin
++ [Surrender] -> surrender_goblin
 + [Check inventory] 
     -> inventory ->
     -> find_goblin
 
-=== attack ===
+=== attack_goblin ===
 + [Attack!] -> fight_goblin
 
 === fight_goblin ===
@@ -30,16 +30,16 @@ You come across a goblin in the woods. What do you do?
 -> loot_npc(NPCS.npc_goblin) ->
 -> after_goblin
 
-=== persuade ===
+=== persuade_goblin ===
 { skill_check("CHA", 10):
     It surrenders. 
     ~ peaceful_resolution = true
     -> after_goblin
   - else:
-    It laughs and attacks. -> attack
+    It laughs and attacks. -> attack_goblin
 }
 
-=== surrender ===
+=== surrender_goblin ===
 You drop your weapon. 
 // Logic: If you have a weapon equipped, you lose it.
 { eq_weapon != ITEMS.none:
@@ -61,5 +61,5 @@ The goblin takes your coins and leaves.
     -> after_goblin
 + [Move on]
   You continue down the trail...
-  + [Continue]
+  ++ [Continue]
       ->->

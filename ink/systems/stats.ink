@@ -86,12 +86,12 @@ VAR char_gender = "male"
     + [Continue]
         ~ HP_CUR = 1
         ~ SP_CUR = 0
-        -> after_goblin //replace with whatever generic defeat event
+        -> the_end //replace with whatever generic defeat event
 - SP_CUR >= SP_BASE + EQUIPPED_STAT_BONUS("SP"):
     You overload on spirit. You collapse from exhaustion.
     + [Continue] 
         ~ SP_CUR = 0
-        -> after_goblin //replace with whatever generic defeat event
+        -> the_end //replace with whatever generic defeat event
 - else:
     ->->
 }

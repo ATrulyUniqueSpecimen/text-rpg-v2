@@ -1,14 +1,25 @@
 // systems/npcs.ink
 // Requires: inventory.ink
 
-LIST NPCS = (npc_none), npc_goblin
+LIST NPCS = (npc_none), npc_goblin, npc_kobold
 
 VAR goblin_inv = (rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, potion_of_stupidity)
 VAR goblin_coins = 5
+VAR kobold_inv = (rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, potion_of_stupidity)
+VAR kobold_coins = 5
 
 === function get_npc_stat(npc, stat) ===
     { npc:
     - NPCS.npc_goblin:
+        { stat:
+        - "STR": ~ return 4
+        - "CHA": ~ return 4
+        - "WIT": ~ return 4
+        - "SP":  ~ return 4
+        - else: ~ return 0
+        }
+
+    - NPCS.npc_kobold:
         { stat:
         - "STR": ~ return 4
         - "CHA": ~ return 4
@@ -23,23 +34,27 @@ VAR goblin_coins = 5
 === function get_npc_inv(npc) ===
     { npc:
     - NPCS.npc_goblin: ~ return goblin_inv
+    - NPCS.npc_kobold: ~ return kobold_inv
     - else: ~ return ()
     }
 
 === function get_npc_coins(npc) ===
     { npc:
     - NPCS.npc_goblin: ~ return goblin_coins
+    - NPCS.npc_kobold: ~ return kobold_coins
     - else: ~ return 0
     }
 
 === function set_npc_inv(npc, new_inv) ===
     { npc:
     - NPCS.npc_goblin: ~ goblin_inv = new_inv
+    - NPCS.npc_kobold: ~ kobold_inv = new_inv
     }
 
 === function set_npc_coins(npc, new_coins) ===
     { npc:
     - NPCS.npc_goblin: ~ goblin_coins = new_coins
+    - NPCS.npc_kobold: ~ kobold_coins = new_coins
     }
 
 === loot_npc(npc) ===
