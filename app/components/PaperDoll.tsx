@@ -38,7 +38,7 @@ export function PaperDoll({ gender, equipment, isDarkMode, formatItemName, textC
             {/* Silhouette */}
             <div style={{
                 position: "absolute", left: "50%", top: "50%",
-                transform: isMobile ? "translate(calc(-50% - 17px), -50%)" : "translate(-50%, -50%)",
+                transform: isMobile ? "translate(calc(-50% - 0px), -50%)" : "translate(-50%, -50%)",
                 width: 200, height: 480,
                 backgroundImage: `url(${(gender + "").toLowerCase() === "female" ? "/assets/body_silhouette_female.png" : "/assets/body_silhouette.png"})`,
                 backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center",

@@ -5,13 +5,9 @@ INCLUDE scenes/goblin_encounter(test).ink
 INCLUDE scenes/kobold_encounter(test).ink
 
 VAR coins = 0
+VAR death_reason = ""
 
 
 -> find_goblin -> 
 -> find_kobold ->
--> END
-
-
-=== the_end ===
-You return to town.
 -> END

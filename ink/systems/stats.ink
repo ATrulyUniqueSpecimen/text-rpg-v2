@@ -97,3 +97,16 @@ VAR char_name = "Traveler"
 - else:
     ->->
 }
+
+
+=== the_end ===
+{ death_reason == "hp": 
+    You have run out of health. You collapse and your vision fades.
+    -> END
+}
+{ death_reason == "sp": 
+    You are overwhelmed by spiritual energy! You ascend to a higher plane.
+    -> END
+}
+You return to town.
+-> END

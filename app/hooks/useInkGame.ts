@@ -395,6 +395,26 @@ export function useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievemen
         }
     }
 
+    function jumpTo(path: string) {
+        if (!story) return;
+        try {
+            story.ChoosePathString(path);
+            const { newLines, newChoices } = continueStory(story);
+            setLines(prev => {
+                const updated = [...prev, ...newLines];
+                if (updated.length > MAX_HISTORY_LINES) {
+                    updated.splice(0, updated.length - MAX_HISTORY_LINES);
+                }
+                saveToSlot(story, activeSlot, updated);
+                return updated;
+            });
+            setChoices(newChoices);
+            syncSidebar(story);
+        } catch (e) {
+            console.error("Jump failed", e);
+        }
+    }
+
     return {
         story,
         lines,
@@ -422,6 +442,7 @@ export function useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievemen
         useCompanionItem,
         checkCompanionRefusal,
         getRefusalText,
-        getOutfitReactionText
+        getOutfitReactionText,
+        jumpTo
     };
 }

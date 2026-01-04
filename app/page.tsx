@@ -5,6 +5,7 @@ import { SideMenu } from "./components/SideMenu";
 import { StartMenu } from "./components/StartMenu";
 import { CharacterCreator } from "./components/CharacterCreator";
 import { ConfirmationModal } from "./components/ConfirmationModal";
+import { FeedbackForm } from "./components/FeedbackForm";
 import { useEntityStats } from "./hooks/useEntityStats";
 import { useInkGame } from "./hooks/useInkGame";
 
@@ -122,7 +123,8 @@ export default function Page() {
     useCompanionItem,
     checkCompanionRefusal,
     getRefusalText,
-    getOutfitReactionText
+    getOutfitReactionText,
+    jumpTo
   } = useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievement });
 
   // Transfer Logic
@@ -135,6 +137,28 @@ export default function Page() {
   const [reactionModal, setReactionModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: "" });
   const [companionDropTarget, setCompanionDropTarget] = useState<{ id: string, name: string } | null>(null);
   const [companionUseTarget, setCompanionUseTarget] = useState<{ id: string, name: string } | null>(null);
+
+  useEffect(() => {
+    if (mode !== "game" || !story) return;
+
+    // Check if already ending/ended to avoid loops
+    const currentReason = story.variablesState["death_reason"] as string;
+    if (currentReason) return;
+
+    // Check HP (Death)
+    if (uiStats.HP.cur <= 0) {
+      story.variablesState["death_reason"] = "hp";
+      jumpTo("the_end");
+      return;
+    }
+
+    // Check SP (Ascension)
+    if (uiStats.SP.max > 0 && uiStats.SP.cur >= uiStats.SP.max) {
+      story.variablesState["death_reason"] = "sp";
+      jumpTo("the_end");
+      return;
+    }
+  }, [uiStats.HP.cur, uiStats.SP.cur, uiStats.SP.max, mode, story, jumpTo]);
 
   function requestTransferToCompanion(itemId: string) {
     setTransferItem({ id: itemId, name: pretty(itemId) });
@@ -549,41 +573,48 @@ export default function Page() {
               )}
 
 
-              {/* Dialogue Box - Always visible */}
-              <div
-                ref={scrollContainerRef}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  height: "65vh",
-                  overflowY: "auto",
-                  border: `1px solid ${borderColor}`,
-                  borderRadius: 12,
-                  padding: 20,
-                  background: isDarkMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,0.8)",
-                  scrollBehavior: "smooth",
-                  position: "relative"
-                }}
-              >
-                <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: 15 }}>
-                  {lines.map((t, idx) => (
-                    <p
-                      key={idx}
-                      ref={idx === lines.length - 1 ? lastLineRef : null}
-                      style={{ marginTop: 0, marginBottom: 16 }}
-                    >
-                      {t}
-                    </p>
-                  ))}
+              <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Dialogue Box */}
+                <div
+                  ref={scrollContainerRef}
+                  style={{
+                    height: "65vh",
+                    overflowY: "auto",
+                    border: `1px solid ${borderColor}`,
+                    borderRadius: 12,
+                    padding: 20,
+                    background: isDarkMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.8)",
+                    scrollBehavior: "smooth",
+                    position: "relative"
+                  }}
+                >
+                  <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.6, fontSize: 15 }}>
+                    {lines.map((t, idx) => (
+                      <p
+                        key={idx}
+                        ref={idx === lines.length - 1 ? lastLineRef : null}
+                        style={{ marginTop: 0, marginBottom: 16 }}
+                      >
+                        {t}
+                      </p>
+                    ))}
+                  </div>
+
+                  <div style={{ display: "grid", gap: 10, marginTop: 24, paddingBottom: "65vh" }}>
+                    {choices.map(c => (
+                      <button key={c.index} onClick={() => choose(c.index)} style={{ textAlign: "left", padding: "12px 18px", background: "rgba(128,128,128,0.1)", border: `1px solid ${borderColor}`, borderRadius: 8, color: textColor, cursor: "pointer", transition: "all 0.2s ease" }}>
+                        {c.text}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                <div style={{ display: "grid", gap: 10, marginTop: 24, paddingBottom: "65vh" }}>
-                  {choices.map(c => (
-                    <button key={c.index} onClick={() => choose(c.index)} style={{ textAlign: "left", padding: "12px 18px", background: "rgba(128,128,128,0.1)", border: `1px solid ${borderColor}`, borderRadius: 8, color: textColor, cursor: "pointer", transition: "all 0.2s ease" }}>
-                      {c.text}
-                    </button>
-                  ))}
-                </div>
+                {/* Feedback Form */}
+                <FeedbackForm
+                  textColor={textColor}
+                  bgColor={isDarkMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.8)"}
+                  borderColor={borderColor}
+                />
               </div>
 
               {/* Desktop Character Menu - Shown to the right when visible */}

@@ -8,10 +8,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "@vercel/postgres": "^0.10.0",
     "inkjs": "^2.3.2",
     "next": "16.1.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "swr": "^2.3.8"
   },
   "devDependencies": {
     "@types/node": "^20",
