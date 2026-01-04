@@ -19,7 +19,7 @@ export function StatEditor({ stats, setStats, pool }: StatEditorProps) {
     const remaining = pool - total;
 
     function setOne(k: keyof BaseStats, v: number) {
-        const clamped = Math.max(1, Math.min(20, v));
+        const clamped = Math.max(8, Math.min(20, v));
         setStats({ ...stats, [k]: clamped });
     }
 
@@ -32,8 +32,8 @@ export function StatEditor({ stats, setStats, pool }: StatEditorProps) {
     };
 
     return (
-        <div style={{ display: "grid", gap: 12, marginTop: 16 }}>
-            <div style={{ opacity: 0.85 }}>Remaining: {remaining}</div>
+        <div style={{ display: "grid", gap: 12 }}>
+            <div style={{ opacity: 0.85 }}> Attributes (Points Remaining: {remaining})</div>
 
             {(["HP_BASE", "SP_BASE", "STR_BASE", "CHA_BASE", "WIT_BASE"] as const).map((k) => (
                 <div key={k} style={{ display: "grid", gridTemplateColumns: "100px 1fr", gap: 10, alignItems: "center" }}>
@@ -42,7 +42,7 @@ export function StatEditor({ stats, setStats, pool }: StatEditorProps) {
                         <div style={{ fontSize: 11, opacity: 0.6 }}>{LABELS[k].full}</div>
                     </div>
                     <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "flex-end" }}>
-                        <button onClick={() => setOne(k, stats[k] - 1)} disabled={stats[k] <= 1}>
+                        <button onClick={() => setOne(k, stats[k] - 1)} disabled={stats[k] <= 8}>
                             -
                         </button>
                         <div style={{ width: 30, textAlign: "center", fontWeight: 700 }}>{stats[k]}</div>

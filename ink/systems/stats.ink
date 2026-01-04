@@ -81,6 +81,15 @@ VAR char_name = "Traveler"
     ~ SP_CUR = 0
 }
 
+=== function lose_sp(amt) ===
+~ SP_CUR -= amt
+{
+- SP_CUR > SP_BASE + EQUIPPED_STAT_BONUS("SP"):
+    ~ SP_CUR = SP_BASE + EQUIPPED_STAT_BONUS("SP")
+- SP_CUR < 0:
+    ~ SP_CUR = 0
+}
+
 === status_check ===
 {
 - HP_CUR <= 0:

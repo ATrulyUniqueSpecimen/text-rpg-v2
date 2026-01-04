@@ -74,9 +74,9 @@ export default function Page() {
     getItemSlot, // Destructure this
   } = useEntityStats();
 
-  const [stats, setStats] = useState({ STR_BASE: 4, CHA_BASE: 4, WIT_BASE: 4, HP_BASE: 4, SP_BASE: 4 });
-  const [name, setName] = useState("Traveler"); // NEW: Name State
-  const STAT_POOL = 25;
+  const [stats, setStats] = useState({ STR_BASE: 8, CHA_BASE: 8, WIT_BASE: 8, HP_BASE: 8, SP_BASE: 8 });
+  const [name, setName] = useState(""); // NEW: Name State
+  const STAT_POOL = 50;
 
   function unlockAchievement(id: string) {
     if (!achievements[id]) {
@@ -387,9 +387,9 @@ export default function Page() {
 
   function beginNewGame(slot: number) {
     setPendingSlot(slot);
-    setStats({ STR_BASE: 4, CHA_BASE: 4, WIT_BASE: 4, HP_BASE: 4, SP_BASE: 4 });
+    setStats({ STR_BASE: 8, CHA_BASE: 8, WIT_BASE: 8, HP_BASE: 8, SP_BASE: 8 });
     setGender("male");
-    setName("Traveler"); // Reset Name
+    setName(""); // Reset Name
     setMode("stats");
     setShowOverwriteConfirm(false);
   }
@@ -578,7 +578,7 @@ export default function Page() {
                 <div
                   ref={scrollContainerRef}
                   style={{
-                    height: "65vh",
+                    height: "55vh",
                     overflowY: "auto",
                     border: `1px solid ${borderColor}`,
                     borderRadius: 12,

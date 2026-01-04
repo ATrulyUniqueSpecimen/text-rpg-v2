@@ -170,15 +170,17 @@ export function SideMenu({
                 ))}
             </div>
 
-            <PaperDoll
-                gender={gender}
-                equipment={equipment}
-                isDarkMode={isDarkMode}
-                formatItemName={formatItemName}
-                textColor={textColor}
-                bgColor={bgColor}
-                isMobile={isMobile}
-            />
+            {!isCompanion && (
+                <PaperDoll
+                    gender={gender}
+                    equipment={equipment}
+                    isDarkMode={isDarkMode}
+                    formatItemName={formatItemName}
+                    textColor={textColor}
+                    bgColor={bgColor}
+                    isMobile={isMobile}
+                />
+            )}
 
             <InventoryList
                 items={inventory}

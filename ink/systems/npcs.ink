@@ -25,6 +25,15 @@ VAR goblin_small_knife_count = 1
 VAR goblin_potion_of_spirit_count = 1
 VAR goblin_potion_of_stupidity_count = 1
 
+// Goblin Base Stats (for consumable effects)
+VAR goblin_str_base = 4
+VAR goblin_cha_base = 4
+VAR goblin_wit_base = 4
+VAR goblin_hp_base = 4
+VAR goblin_sp_base = 4
+VAR goblin_hp_cur = 4
+VAR goblin_sp_cur = 0
+
 // Kobold data
 VAR kobold_rep = 10
 VAR kobold_inv = (rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, potion_of_stupidity)
@@ -43,6 +52,15 @@ VAR kobold_old_sack_count = 1
 VAR kobold_small_knife_count = 1
 VAR kobold_potion_of_spirit_count = 1
 VAR kobold_potion_of_stupidity_count = 1
+
+// Kobold Base Stats (for consumable effects)
+VAR kobold_str_base = 4
+VAR kobold_cha_base = 4
+VAR kobold_wit_base = 4
+VAR kobold_hp_base = 4
+VAR kobold_sp_base = 4
+VAR kobold_hp_cur = 4
+VAR kobold_sp_cur = 0
 
 // NPC Names
 === function get_npc_name(npc) ===
@@ -122,20 +140,26 @@ VAR REP_THRESHOLD_TAKE = 10
     { npc:
     - NPCS.npc_goblin:
         { stat:
-        - "STR": ~ return 4
-        - "CHA": ~ return 4
-        - "WIT": ~ return 4
-        - "SP":  ~ return 4
+        - "STR": ~ return goblin_str_base
+        - "CHA": ~ return goblin_cha_base
+        - "WIT": ~ return goblin_wit_base
+        - "HP":  ~ return goblin_hp_base
+        - "SP":  ~ return goblin_sp_base
+        - "HP_CUR": ~ return goblin_hp_cur
+        - "SP_CUR": ~ return goblin_sp_cur
         - "REP": ~ return goblin_rep
         - else: ~ return 0
         }
 
     - NPCS.npc_kobold:
         { stat:
-        - "STR": ~ return 4
-        - "CHA": ~ return 4
-        - "WIT": ~ return 4
-        - "SP":  ~ return 4
+        - "STR": ~ return kobold_str_base
+        - "CHA": ~ return kobold_cha_base
+        - "WIT": ~ return kobold_wit_base
+        - "HP":  ~ return kobold_hp_base
+        - "SP":  ~ return kobold_sp_base
+        - "HP_CUR": ~ return kobold_hp_cur
+        - "SP_CUR": ~ return kobold_sp_cur
         - "REP": ~ return kobold_rep
         - else: ~ return 0
         }
@@ -229,6 +253,141 @@ VAR REP_THRESHOLD_TAKE = 10
 + {npc_inv ? ITEMS.potion_of_stupidity} [Take {item_label(ITEMS.potion_of_stupidity)}]
     ~ take_item(ITEMS.potion_of_stupidity)
     ~ set_npc_inv(npc, npc_inv - ITEMS.potion_of_stupidity)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.common_tunic} [Take {item_label(ITEMS.common_tunic)}]
+    ~ take_item(ITEMS.common_tunic)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.common_tunic)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.rugged_coat} [Take {item_label(ITEMS.rugged_coat)}]
+    ~ take_item(ITEMS.rugged_coat)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.rugged_coat)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.noble_cloak} [Take {item_label(ITEMS.noble_cloak)}]
+    ~ take_item(ITEMS.noble_cloak)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.noble_cloak)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.common_hood} [Take {item_label(ITEMS.common_hood)}]
+    ~ take_item(ITEMS.common_hood)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.common_hood)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.old_helmet} [Take {item_label(ITEMS.old_helmet)}]
+    ~ take_item(ITEMS.old_helmet)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.old_helmet)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.rugged_stetson} [Take {item_label(ITEMS.rugged_stetson)}]
+    ~ take_item(ITEMS.rugged_stetson)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.rugged_stetson)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.fancy_bycocket} [Take {item_label(ITEMS.fancy_bycocket)}]
+    ~ take_item(ITEMS.fancy_bycocket)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.fancy_bycocket)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.headband_of_intellect} [Take {item_label(ITEMS.headband_of_intellect)}]
+    ~ take_item(ITEMS.headband_of_intellect)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.headband_of_intellect)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.shimmering_pendant} [Take {item_label(ITEMS.shimmering_pendant)}]
+    ~ take_item(ITEMS.shimmering_pendant)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.shimmering_pendant)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.fine_silver_chain} [Take {item_label(ITEMS.fine_silver_chain)}]
+    ~ take_item(ITEMS.fine_silver_chain)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.fine_silver_chain)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.collar} [Take {item_label(ITEMS.collar)}]
+    ~ take_item(ITEMS.collar)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.collar)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.leash} [Take {item_label(ITEMS.leash)}]
+    ~ take_item(ITEMS.leash)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.leash)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.pocketwatch} [Take {item_label(ITEMS.pocketwatch)}]
+    ~ take_item(ITEMS.pocketwatch)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.pocketwatch)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.chainmail_bikini} [Take {item_label(ITEMS.chainmail_bikini)}]
+    ~ take_item(ITEMS.chainmail_bikini)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.chainmail_bikini)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.steel_breastplate} [Take {item_label(ITEMS.steel_breastplate)}]
+    ~ take_item(ITEMS.steel_breastplate)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.steel_breastplate)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.gauntlets} [Take {item_label(ITEMS.gauntlets)}]
+    ~ take_item(ITEMS.gauntlets)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.gauntlets)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.oversized_warhammer} [Take {item_label(ITEMS.oversized_warhammer)}]
+    ~ take_item(ITEMS.oversized_warhammer)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.oversized_warhammer)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.simple_pendulum} [Take {item_label(ITEMS.simple_pendulum)}]
+    ~ take_item(ITEMS.simple_pendulum)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.simple_pendulum)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.longsword} [Take {item_label(ITEMS.longsword)}]
+    ~ take_item(ITEMS.longsword)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.longsword)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.scythe} [Take {item_label(ITEMS.scythe)}]
+    ~ take_item(ITEMS.scythe)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.scythe)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.ribbon_wand} [Take {item_label(ITEMS.ribbon_wand)}]
+    ~ take_item(ITEMS.ribbon_wand)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.ribbon_wand)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.spinnable_spiral} [Take {item_label(ITEMS.spinnable_spiral)}]
+    ~ take_item(ITEMS.spinnable_spiral)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.spinnable_spiral)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.ring_of_power} [Take {item_label(ITEMS.ring_of_power)}]
+    ~ take_item(ITEMS.ring_of_power)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.ring_of_power)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.ring_of_intellect} [Take {item_label(ITEMS.ring_of_intellect)}]
+    ~ take_item(ITEMS.ring_of_intellect)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.ring_of_intellect)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.ring_of_influence} [Take {item_label(ITEMS.ring_of_influence)}]
+    ~ take_item(ITEMS.ring_of_influence)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.ring_of_influence)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.ring_of_health} [Take {item_label(ITEMS.ring_of_health)}]
+    ~ take_item(ITEMS.ring_of_health)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.ring_of_health)
+    -> loot_npc(npc)
+
++ {npc_inv ? ITEMS.ring_of_restraint} [Take {item_label(ITEMS.ring_of_restraint)}]
+    ~ take_item(ITEMS.ring_of_restraint)
+    ~ set_npc_inv(npc, npc_inv - ITEMS.ring_of_restraint)
     -> loot_npc(npc)
 
 + [Leave]
@@ -585,6 +744,33 @@ VAR REP_THRESHOLD_TAKE = 10
         - "small_knife": ~ return ITEMS.small_knife
         - "potion_of_spirit": ~ return ITEMS.potion_of_spirit
         - "potion_of_stupidity": ~ return ITEMS.potion_of_stupidity
+        - "common_tunic": ~ return ITEMS.common_tunic
+        - "rugged_coat": ~ return ITEMS.rugged_coat
+        - "noble_cloak": ~ return ITEMS.noble_cloak
+        - "common_hood": ~ return ITEMS.common_hood
+        - "old_helmet": ~ return ITEMS.old_helmet
+        - "rugged_stetson": ~ return ITEMS.rugged_stetson
+        - "fancy_bycocket": ~ return ITEMS.fancy_bycocket
+        - "headband_of_intellect": ~ return ITEMS.headband_of_intellect
+        - "shimmering_pendant": ~ return ITEMS.shimmering_pendant
+        - "fine_silver_chain": ~ return ITEMS.fine_silver_chain
+        - "collar": ~ return ITEMS.collar
+        - "leash": ~ return ITEMS.leash
+        - "pocketwatch": ~ return ITEMS.pocketwatch
+        - "chainmail_bikini": ~ return ITEMS.chainmail_bikini
+        - "steel_breastplate": ~ return ITEMS.steel_breastplate
+        - "gauntlets": ~ return ITEMS.gauntlets
+        - "oversized_warhammer": ~ return ITEMS.oversized_warhammer
+        - "simple_pendulum": ~ return ITEMS.simple_pendulum
+        - "longsword": ~ return ITEMS.longsword
+        - "scythe": ~ return ITEMS.scythe
+        - "ribbon_wand": ~ return ITEMS.ribbon_wand
+        - "spinnable_spiral": ~ return ITEMS.spinnable_spiral
+        - "ring_of_power": ~ return ITEMS.ring_of_power
+        - "ring_of_intellect": ~ return ITEMS.ring_of_intellect
+        - "ring_of_influence": ~ return ITEMS.ring_of_influence
+        - "ring_of_health": ~ return ITEMS.ring_of_health
+        - "ring_of_restraint": ~ return ITEMS.ring_of_restraint
         - else: ~ return ITEMS.none
     }
 
@@ -659,7 +845,36 @@ VAR REP_THRESHOLD_TAKE = 10
          ~ temp cur_inv = get_npc_inv(current_companion)
          ~ temp count = get_npc_item_count(current_companion, item)
         
-        // Decrement
+        // Apply consumable effects to companion stats
+        ~ temp str_bonus = get_item_use_bonus(item, "STR")
+        ~ temp cha_bonus = get_item_use_bonus(item, "CHA")
+        ~ temp wit_bonus = get_item_use_bonus(item, "WIT")
+        ~ temp hp_max_bonus = get_item_use_bonus(item, "HP_MAX")
+        ~ temp hp_cur_bonus = get_item_use_bonus(item, "HP_CUR")
+        ~ temp sp_max_bonus = get_item_use_bonus(item, "SP_MAX")
+        ~ temp sp_cur_bonus = get_item_use_bonus(item, "SP_CUR")
+        
+        // Apply effects based on NPC type
+        { current_companion:
+        - NPCS.npc_goblin:
+            ~ goblin_str_base += str_bonus
+            ~ goblin_cha_base += cha_bonus
+            ~ goblin_wit_base += wit_bonus
+            ~ goblin_hp_base += hp_max_bonus
+            ~ goblin_hp_cur += hp_cur_bonus
+            ~ goblin_sp_base += sp_max_bonus
+            ~ goblin_sp_cur += sp_cur_bonus
+        - NPCS.npc_kobold:
+            ~ kobold_str_base += str_bonus
+            ~ kobold_cha_base += cha_bonus
+            ~ kobold_wit_base += wit_bonus
+            ~ kobold_hp_base += hp_max_bonus
+            ~ kobold_hp_cur += hp_cur_bonus
+            ~ kobold_sp_base += sp_max_bonus
+            ~ kobold_sp_cur += sp_cur_bonus
+        }
+        
+        // Decrement item count
         ~ set_npc_item_count(current_companion, item, count - 1)
 
         { get_npc_item_count(current_companion, item) <= 0:

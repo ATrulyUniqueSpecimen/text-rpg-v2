@@ -191,7 +191,7 @@ export function useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievemen
 
     function backToMenu() {
         setMode("menu");
-        setMenuView("saves");
+        setMenuView("splash");
         setStory(null);
         setLines([]);
         setChoices([]);

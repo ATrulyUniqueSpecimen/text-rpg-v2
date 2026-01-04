@@ -53,11 +53,21 @@ export function StartMenu({
             {menuView === "splash" && (
                 <div style={{ textAlign: "center", animation: "fadeIn 1s ease" }}>
                     <h1 style={{ fontSize: 48, marginBottom: 8, background: "linear-gradient(90deg, #ff4d4d, #4d4dff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                        <br />
                         Text RPG
                     </h1>
                     <p style={{ opacity: 0.6, fontSize: 18, marginBottom: 32 }}>by ATrulyUniqueSpecimen</p>
                     <p style={{ maxWidth: 500, margin: "0 auto 48px", lineHeight: 1.6, opacity: 0.85 }}>
+                        <br />
                         A choose your-own adventure text-based RPG.
+                        <br />
+                        <br />
+                        This is a work in progress, and is not yet complete. Feel free to report bugs or suggest features for future implementation in the message box at the bottom of the game.
+                        <br />
+                        <br />
+                        This is a free game, and will always remain so.
+                        <br />
+                        <br />
                     </p>
                     <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
                         <button
@@ -145,7 +155,10 @@ export function StartMenu({
                                                         Cancel
                                                     </button>
                                                     <button
-                                                        onClick={() => clearSlot(showDeleteConfirm)}
+                                                        onClick={() => {
+                                                            clearSlot(showDeleteConfirm);
+                                                            setShowDeleteConfirm(null);
+                                                        }}
                                                         style={{ background: "#ff4d4d", border: "none", color: "#fff", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontWeight: 700 }}
                                                     >
                                                         Yes, Delete
@@ -268,7 +281,7 @@ export function StartMenu({
                 </div>
             )}
 
-            <div style={{ position: "fixed", bottom: 40, left: 40, display: "flex", gap: 20 }}>
+            <div style={{ position: "fixed", bottom: 40, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 20, zIndex: 10 }}>
                 {[
                     { id: "achievements", icon: "M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z" },
                     { id: "saves", icon: "M17,3H5C3.9,3,3,3.9,3,5v14c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2V7L17,3z M12,19c-1.66,0-3-1.34-3-3s1.34-3,3-3s3,1.34,3,3S13.66,19,12,19z M15,9H5V5h10V9z" },
