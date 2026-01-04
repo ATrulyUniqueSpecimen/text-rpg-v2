@@ -30,3 +30,70 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+/* Animations Extracted from Page.tsx */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(110%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(110%);
+  }
+}
+
+@keyframes gradientSlide {
+  from {
+    background-position: 0% 100%;
+  }
+
+  to {
+    background-position: 0% 0%;
+  }
+}
+
+/* Utility Classes */
+.equipment-slot:hover .slot-tooltip {
+  opacity: 1 !important;
+}
+
+.equipment-slot:hover {
+  border-color: var(--text-color) !important;
+  transform: translateY(-2px);
+}
+
+button {
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+}

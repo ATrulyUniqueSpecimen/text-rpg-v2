@@ -3,9 +3,7 @@ You come across a kobold in the woods. What do you do?
 + [Fight it] -> attack_kobold
 + [Persuade it to surrender] -> persuade_kobold
 + [Surrender] -> surrender_kobold
-+ [Check inventory] 
-    -> inventory ->
-    -> find_kobold
+
 
 === attack_kobold ===
 + [Attack!] -> fight_kobold
@@ -51,9 +49,7 @@ The kobold takes your coins and leaves.
 -> after_kobold
 
 === after_kobold ===
-+ [Check inventory] 
-    -> inventory ->
-    -> after_kobold
+
 + [Move on]
   You continue down the trail...
   ++ [Continue]

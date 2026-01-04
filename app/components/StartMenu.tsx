@@ -1,5 +1,10 @@
 import React from "react";
 
+type SaveMetadata = {
+    name: string;
+    date: string;
+};
+
 type StartMenuProps = {
     menuView: "splash" | "saves" | "achievements" | "settings";
     setMenuView: (view: "splash" | "saves" | "achievements" | "settings") => void;
@@ -9,7 +14,7 @@ type StartMenuProps = {
     confirmTheme: () => void;
     isMobileView: boolean;
     setIsMobileView: (v: boolean) => void;
-    slotHasSave: boolean[];
+    slotHasSave: (SaveMetadata | null)[];
     handleQuickNewGame: () => void;
     handleQuickContinue: () => void;
     achievements: Record<string, boolean>;
@@ -67,12 +72,12 @@ export function StartMenu({
                         </button>
                         <button
                             onClick={handleQuickContinue}
-                            disabled={!slotHasSave.some(s => s === true)}
+                            disabled={!slotHasSave.some(s => s !== null)}
                             style={{
-                                background: slotHasSave.some(s => s === true) ? "rgba(128,128,128,0.2)" : "rgba(128,128,128,0.1)",
+                                background: slotHasSave.some(s => s !== null) ? "rgba(128,128,128,0.2)" : "rgba(128,128,128,0.1)",
                                 border: "none", color: textColor, padding: "12px 32px", borderRadius: 8,
-                                fontSize: 18, fontWeight: 700, cursor: slotHasSave.some(s => s === true) ? "pointer" : "not-allowed",
-                                opacity: slotHasSave.some(s => s === true) ? 1 : 0.4
+                                fontSize: 18, fontWeight: 700, cursor: slotHasSave.some(s => s !== null) ? "pointer" : "not-allowed",
+                                opacity: slotHasSave.some(s => s !== null) ? 1 : 0.4
                             }}
                         >
                             Continue
@@ -88,63 +93,70 @@ export function StartMenu({
                         <button onClick={() => setMenuView("splash")} style={{ background: "rgba(128,128,128,0.1)", border: `1px solid ${borderColor}`, color: textColor, padding: "6px 12px", borderRadius: 6, cursor: "pointer", fontSize: 13 }}>Back to Home</button>
                     </div>
                     <div style={{ display: "grid", gap: 12 }}>
-                        {[0, 1, 2].map(slot => (
-                            <div key={slot} style={{ border: `1px solid ${borderColor}`, borderRadius: 10, padding: 12, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                                    <div style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(128,128,128,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
-                                        {slot + 1}
-                                    </div>
-                                    <div>
-                                        <div style={{ fontWeight: 700 }}>Slot {slot + 1}</div>
-                                        <div style={{ fontSize: 12, opacity: 0.5 }}>{slotHasSave[slot] ? "Save Data Present" : "Empty Slot"}</div>
-                                    </div>
-                                </div>
-                                <div style={{ display: "flex", gap: 8, justifyContent: isMobileView && slotHasSave[slot] ? "center" : "flex-end", flexWrap: "wrap" }}>
-                                    {slotHasSave[slot] ? (
-                                        <>
-                                            <button onClick={() => loadSlot(slot)} style={{ background: "linear-gradient(90deg, #ff4d4d, #4d4dff)", border: "none", color: "#fff", cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>Load</button>
-                                            <button onClick={() => beginNewGame(slot)} style={{ background: "rgba(128,128,128,0.2)", border: "none", color: textColor, cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>Overwrite</button>
-                                            <button onClick={() => setShowDeleteConfirm(slot)} style={{ background: "rgba(255,0,0,0.1)", border: `1px solid rgba(255,0,0,0.2)`, color: "#ff4d4d", cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>Delete</button>
-                                        </>
-                                    ) : (
-                                        <button onClick={() => beginNewGame(slot)} style={{ background: "linear-gradient(90deg, #ff4d4d, #4d4dff)", border: "none", color: "#fff", cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>New Game</button>
-                                    )}
-                                </div>
-
-                                {showDeleteConfirm !== null && (
-                                    <div style={{
-                                        position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-                                        background: "rgba(0,0,0,0.8)", zIndex: 5000, display: "flex",
-                                        alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)"
-                                    }}>
-                                        <div style={{
-                                            background: isDarkMode ? "#1e1e1e" : "#fff", padding: 32,
-                                            borderRadius: 16, border: `2px solid #ff4d4d`, maxWidth: 400, textAlign: "center",
-                                            boxShadow: "0 20px 40px rgba(0,0,0,0.5)", animation: "fadeIn 0.3s ease"
-                                        }}>
-                                            <h3 style={{ color: "#ff4d4d", marginTop: 0 }}>Delete Save?</h3>
-                                            <p style={{ opacity: 0.8, lineHeight: 1.5 }}>
-                                                Are you sure you want to delete the save in <strong>Slot {showDeleteConfirm + 1}</strong>? This action cannot be undone.
-                                            </p>
-                                            <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "center" }}>
-                                                <button
-                                                    onClick={() => setShowDeleteConfirm(null)}
-                                                    style={{ background: "rgba(128,128,128,0.2)", border: "none", color: textColor, padding: "10px 20px", borderRadius: 8, cursor: "pointer" }}
-                                                >
-                                                    Cancel
-                                                </button>
-                                                <button
-                                                    onClick={() => clearSlot(showDeleteConfirm)}
-                                                    style={{ background: "#ff4d4d", border: "none", color: "#fff", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontWeight: 700 }}
-                                                >
-                                                    Yes, Delete
-                                                </button>
+                        {[0, 1, 2].map(slot => {
+                            const meta = slotHasSave[slot];
+                            return (
+                                <div key={slot} style={{ border: `1px solid ${borderColor}`, borderRadius: 10, padding: 12, display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center", justifyContent: "space-between" }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                        <div style={{ width: 40, height: 40, borderRadius: 20, background: "rgba(128,128,128,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>
+                                            {slot + 1}
+                                        </div>
+                                        <div>
+                                            <div style={{ fontWeight: 700 }}>
+                                                {meta ? meta.name : `Slot ${slot + 1}`}
+                                            </div>
+                                            <div style={{ fontSize: 12, opacity: 0.5 }}>
+                                                {meta ? `Saved: ${meta.date}` : "Empty Slot"}
                                             </div>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        ))}
+                                    <div style={{ display: "flex", gap: 8, justifyContent: isMobileView && meta ? "center" : "flex-end", flexWrap: "wrap" }}>
+                                        {meta ? (
+                                            <>
+                                                <button onClick={() => loadSlot(slot)} style={{ background: "linear-gradient(90deg, #ff4d4d, #4d4dff)", border: "none", color: "#fff", cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>Load</button>
+                                                <button onClick={() => beginNewGame(slot)} style={{ background: "rgba(128,128,128,0.2)", border: "none", color: textColor, cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>Overwrite</button>
+                                                <button onClick={() => setShowDeleteConfirm(slot)} style={{ background: "rgba(255,0,0,0.1)", border: `1px solid rgba(255,0,0,0.2)`, color: "#ff4d4d", cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>Delete</button>
+                                            </>
+                                        ) : (
+                                            <button onClick={() => beginNewGame(slot)} style={{ background: "linear-gradient(90deg, #ff4d4d, #4d4dff)", border: "none", color: "#fff", cursor: "pointer", padding: "8px 16px", borderRadius: 6 }}>New Game</button>
+                                        )}
+                                    </div>
+
+                                    {showDeleteConfirm !== null && (
+                                        <div style={{
+                                            position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+                                            background: "rgba(0,0,0,0.8)", zIndex: 5000, display: "flex",
+                                            alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)"
+                                        }}>
+                                            <div style={{
+                                                background: isDarkMode ? "#1e1e1e" : "#fff", padding: 32,
+                                                borderRadius: 16, border: `2px solid #ff4d4d`, maxWidth: 400, textAlign: "center",
+                                                boxShadow: "0 20px 40px rgba(0,0,0,0.5)", animation: "fadeIn 0.3s ease"
+                                            }}>
+                                                <h3 style={{ color: "#ff4d4d", marginTop: 0 }}>Delete Save?</h3>
+                                                <p style={{ opacity: 0.8, lineHeight: 1.5 }}>
+                                                    Are you sure you want to delete the save in <strong>Slot {showDeleteConfirm + 1}</strong>? This action cannot be undone.
+                                                </p>
+                                                <div style={{ display: "flex", gap: 12, marginTop: 24, justifyContent: "center" }}>
+                                                    <button
+                                                        onClick={() => setShowDeleteConfirm(null)}
+                                                        style={{ background: "rgba(128,128,128,0.2)", border: "none", color: textColor, padding: "10px 20px", borderRadius: 8, cursor: "pointer" }}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        onClick={() => clearSlot(showDeleteConfirm)}
+                                                        style={{ background: "#ff4d4d", border: "none", color: "#fff", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontWeight: 700 }}
+                                                    >
+                                                        Yes, Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

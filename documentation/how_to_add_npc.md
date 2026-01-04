@@ -114,7 +114,6 @@ When adding a new NPC, you must update these locations in `npcs.ink`:
 | `set_npc_inv`       | Inventory setter                                 |
 | `set_npc_coins`     | Coins setter                                     |
 
-3.  **Update `get_npc_stat`**: Add a case for the new NPC's stats.
     ```ink
     - NPCS.npc_bandit:
         { stat:
@@ -122,26 +121,41 @@ When adding a new NPC, you must update these locations in `npcs.ink`:
         - "CHA": ~ return 3
         - "WIT": ~ return 4
         - "SP":  ~ return 4
+        - "REP": ~ return 5  // Starting Reputation
         - else: ~ return 0
         }
     ```
 
-4.  **Update `get_npc_inv`**: Add a case to return the NPC's inventory.
+    **Also define `get_npc_desc`:**
+    ```ink
+    === function get_npc_desc(npc) ===
+        { npc:
+        - NPCS.npc_bandit: ~ return "A scrappy fighter with a mean look."
+        ...
+        }
+    ```
+
+    **And Flavor Text:**
+    *   `get_npc_refuse_outfit_text(npc)`
+    *   `get_npc_give_item_text(npc)` (Success taking item)
+    *   `get_npc_refuse_item_text(npc)` (Failure taking item)
+
+5.  **Update `get_npc_inv`**: Add a case to return the NPC's inventory.
     ```ink
     - NPCS.npc_bandit: ~ return bandit_inv
     ```
 
-5.  **Update `get_npc_coins`**: Add a case to return the NPC's coins.
+6.  **Update `get_npc_coins`**: Add a case to return the NPC's coins.
     ```ink
     - NPCS.npc_bandit: ~ return bandit_coins
     ```
 
-6.  **Update `set_npc_inv`**: Add a case to set the NPC's inventory.
+7.  **Update `set_npc_inv`**: Add a case to set the NPC's inventory.
     ```ink
     - NPCS.npc_bandit: ~ bandit_inv = new_inv
     ```
 
-7.  **Update `set_npc_coins`**: Add a case to set the NPC's coins.
+8.  **Update `set_npc_coins`**: Add a case to set the NPC's coins.
     ```ink
     - NPCS.npc_bandit: ~ bandit_coins = new_coins
     ```

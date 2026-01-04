@@ -232,7 +232,8 @@ Are you sure you want to use {item_label(item)}?
 + [Yes] -> do_use(item)
 + [No] -> item_screen(item)
 
-=== do_use(item) ===
+=== function perform_use_item(item) ===
+// Apply effects
 ~ STR_BASE += get_item_use_bonus(item, "STR")
 ~ CHA_BASE += get_item_use_bonus(item, "CHA")
 ~ WIT_BASE += get_item_use_bonus(item, "WIT")
@@ -240,7 +241,6 @@ Are you sure you want to use {item_label(item)}?
 ~ lose_hp(-get_item_use_bonus(item, "HP_CUR"))
 ~ SP_BASE += get_item_use_bonus(item, "SP_MAX")
 ~ gain_sp(get_item_use_bonus(item, "SP_CUR"))
--> status_check ->
 
 // Decrement count
 ~ temp current = get_item_count(item)
@@ -248,6 +248,10 @@ Are you sure you want to use {item_label(item)}?
 { get_item_count(item) <= 0:
     ~ inv -= item
 }
+
+=== do_use(item) ===
+~ perform_use_item(item)
+-> status_check ->
 
 You use {item_label(item)}.
 + [Back] -> inventory

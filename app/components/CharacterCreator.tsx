@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { StatEditor } from "./StatEditor";
 
 type BaseStats = {
@@ -15,11 +15,13 @@ type CharacterCreatorProps = {
     pool: number;
     gender: "male" | "female" | "other";
     setGender: (g: "male" | "female" | "other") => void;
+    name: string;
+    setName: (n: string) => void;
     confirmStats: () => void;
     onBack: () => void;
     textColor: string;
     pendingSlot: number | null;
-    slotHasSave: boolean[];
+    slotHasSave: (any | null)[];  // relaxed type for now to avoid circular dependency issues during refactor
     showOverwriteConfirm: boolean;
     setShowOverwriteConfirm: (v: boolean) => void;
     executeStatsConfirm: () => void;
@@ -32,6 +34,8 @@ export function CharacterCreator({
     pool,
     gender,
     setGender,
+    name,
+    setName,
     confirmStats,
     onBack,
     textColor,
@@ -48,6 +52,28 @@ export function CharacterCreator({
             <p style={{ marginTop: 0, opacity: 0.8 }}>
                 Choose your appearance and distribute {pool} points.
             </p>
+
+            <div style={{ marginBottom: 16 }}>
+                <div style={{ opacity: 0.85, marginBottom: 8 }}>Name</div>
+                <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    maxLength={12}
+                    placeholder="Enter Name"
+                    style={{
+                        padding: "10px 16px",
+                        fontSize: 16,
+                        background: "rgba(128,128,128,0.1)",
+                        border: "1px solid rgba(128,128,128,0.3)",
+                        borderRadius: 6,
+                        color: textColor,
+                        width: "100%",
+                        boxSizing: "border-box",
+                        outline: "none"
+                    }}
+                />
+            </div>
 
             <div style={{ marginBottom: 16 }}>
                 <div style={{ opacity: 0.85, marginBottom: 8 }}>Gender</div>
@@ -79,7 +105,19 @@ export function CharacterCreator({
                 <button onClick={onBack} style={{ background: "rgba(128,128,128,0.2)", border: "none", color: textColor, padding: "8px 16px", borderRadius: 6, cursor: "pointer" }}>
                     Back
                 </button>
-                <button onClick={confirmStats} disabled={stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE + stats.HP_BASE + stats.SP_BASE !== pool} style={{ background: "linear-gradient(90deg, #ff4d4d, #4d4dff)", border: "none", color: "#fff", padding: "8px 16px", borderRadius: 6, cursor: "pointer", fontWeight: 700 }}>
+                <button
+                    onClick={confirmStats}
+                    disabled={stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE + stats.HP_BASE + stats.SP_BASE !== pool || name.trim().length === 0}
+                    style={{
+                        background: "linear-gradient(90deg, #ff4d4d, #4d4dff)",
+                        border: "none",
+                        color: "#fff",
+                        padding: "8px 16px",
+                        borderRadius: 6,
+                        cursor: (stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE + stats.HP_BASE + stats.SP_BASE !== pool || name.trim().length === 0) ? "not-allowed" : "pointer",
+                        fontWeight: 700,
+                        opacity: (stats.STR_BASE + stats.CHA_BASE + stats.WIT_BASE + stats.HP_BASE + stats.SP_BASE !== pool || name.trim().length === 0) ? 0.5 : 1
+                    }}>
                     Confirm
                 </button>
                 {pendingSlot !== null && slotHasSave[pendingSlot] && (

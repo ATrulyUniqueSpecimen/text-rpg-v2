@@ -6,9 +6,7 @@ You come across a goblin in the woods. What do you do?
 + [Fight it] -> attack_goblin
 + [Persuade it to follow you] -> persuade_goblin
 + [Surrender] -> surrender_goblin
-+ [Check inventory] 
-    -> inventory ->
-    -> find_goblin
+
 
 === attack_goblin ===
 + [Attack!] -> fight_goblin
@@ -57,9 +55,7 @@ The goblin takes your coins and leaves.
 -> after_goblin
 
 === after_goblin ===
-+ [Check inventory] 
-    -> inventory ->
-    -> after_goblin
+
 + [Move on]
   You continue down the trail...
   ++ [Continue]

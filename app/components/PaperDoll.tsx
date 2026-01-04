@@ -16,40 +16,42 @@ type PaperDollProps = {
     formatItemName: (id: string) => string;
     textColor: string;
     bgColor: string;
+    isMobile?: boolean;
 };
 
-export function PaperDoll({ gender, equipment, isDarkMode, formatItemName, textColor, bgColor }: PaperDollProps) {
+export function PaperDoll({ gender, equipment, isDarkMode, formatItemName, textColor, bgColor, isMobile }: PaperDollProps) {
     // Logic derived from companion menu to ensure correct alignment for both genders
-    const avatarY = gender === "female" ? 0 : 20;
+    const avatarY = gender === "female" ? 0 : 0;
 
     const slots = [
-        { id: "hat", icon: "/assets/icon_hat.png", x: 6, y: 0, slot: equipment.hat },
-        { id: "outfit", icon: "/assets/icon_outfit.png", x: 6, y: 60, slot: equipment.outfit },
-        { id: "ring", icon: null, x: 6, y: 120, slot: equipment.ring },
-        { id: "necklace", icon: "/assets/icon_necklace.png", x: 200, y: 0, slot: equipment.necklace },
-        { id: "armor", icon: "/assets/icon_armor.png", x: 200, y: 60, slot: equipment.armor },
-        { id: "weapon", icon: "/assets/icon_weapon.png", x: 200, y: 120, slot: equipment.weapon },
+        { id: "hat", icon: "/assets/icon_hat.png", x: -6, y: 0, slot: equipment.hat },
+        { id: "outfit", icon: "/assets/icon_outfit.png", x: -6, y: 60, slot: equipment.outfit },
+        { id: "ring", icon: null, x: -6, y: 120, slot: equipment.ring },
+        { id: "necklace", icon: "/assets/icon_necklace.png", x: 180, y: 0, slot: equipment.necklace },
+        { id: "armor", icon: "/assets/icon_armor.png", x: 180, y: 60, slot: equipment.armor },
+        { id: "weapon", icon: "/assets/icon_weapon.png", x: 180, y: 120, slot: equipment.weapon },
     ] as const;
 
     return (
         <div style={{ marginBottom: 24, position: "relative", height: 180, width: "100%", maxWidth: 260, margin: "0 auto" }}>
             {/* Silhouette */}
             <div style={{
-                position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)",
+                position: "absolute", left: "50%", top: "50%",
+                transform: isMobile ? "translate(calc(-50% - 17px), -50%)" : "translate(-50%, -50%)",
                 width: 200, height: 480,
-                backgroundImage: `url(${gender === "female" ? "/assets/body_silhouette_female.png" : "/assets/body_silhouette.png"})`,
+                backgroundImage: `url(${(gender + "").toLowerCase() === "female" ? "/assets/body_silhouette_female.png" : "/assets/body_silhouette.png"})`,
                 backgroundSize: "contain", backgroundRepeat: "no-repeat", backgroundPosition: "center",
                 opacity: 0.6, filter: isDarkMode ? "invert(1)" : "none"
             }} />
 
             {/* Connection Lines */}
             <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.3 }}>
-                <line x1={58} y1={24} x2={130} y2={15 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={58} y1={84} x2={110} y2={40 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={58} y1={144} x2={92} y2={90 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={200} y1={24} x2={130} y2={42 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={200} y1={84} x2={130} y2={55 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={200} y1={144} x2={167} y2={90 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={46} y1={24} x2={113} y2={15 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={46} y1={84} x2={100} y2={40 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={46} y1={144} x2={76} y2={94 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={180} y1={24} x2={113} y2={42 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={180} y1={84} x2={113} y2={55 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={180} y1={144} x2={150} y2={90 + avatarY} stroke={textColor} strokeWidth="1" />
             </svg>
 
             {/* Slots */}

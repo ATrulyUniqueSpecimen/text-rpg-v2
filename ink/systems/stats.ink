@@ -8,7 +8,9 @@ VAR HP_BASE = 0
 VAR SP_BASE = 0
 VAR HP_CUR = 0
 VAR SP_CUR = 0
+VAR REP_BASE = 0
 VAR char_gender = "male"
+VAR char_name = "Traveler"
 
 // Sum all equipped-slot bonuses that apply to a given stat.
 === function EQUIPPED_STAT_BONUS(stat) ===

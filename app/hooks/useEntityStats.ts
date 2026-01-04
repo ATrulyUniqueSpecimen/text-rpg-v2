@@ -7,6 +7,7 @@ type EntityStats = {
     WIT: { base: number; total: number };
     HP: { cur: number; max: number; bonus?: number };
     SP: { cur: number; max: number; bonus?: number };
+    REP: { base: number; total: number }; // Added REP
 };
 
 type EquipmentSet = {
@@ -18,7 +19,7 @@ type EquipmentSet = {
     ring: string;
 };
 
-const ITEM_STATS: Record<string, { STR?: number; CHA?: number; WIT?: number; HP?: number; SP?: number }> = {
+const ITEM_STATS: Record<string, { STR?: number; CHA?: number; WIT?: number; HP?: number; SP?: number; REP?: number }> = {
     rusty_sword: { STR: 2 },
     leather_armor: { STR: 4 },
     old_sack: { HP: 1, CHA: -1 },
@@ -35,6 +36,15 @@ const ITEM_NAMES: Record<string, string> = {
     potion_of_stupidity: "Potion of Stupidity",
 };
 
+export const ITEM_SLOTS: Record<string, string> = {
+    rusty_sword: "weapon",
+    leather_armor: "armor",
+    old_sack: "outfit",
+    small_knife: "weapon",
+    potion_of_spirit: "consumable",
+    potion_of_stupidity: "consumable",
+};
+
 export function useEntityStats() {
     const [uiCoins, setUiCoins] = useState(0);
     const [uiEquippedWeapon, setUiEquippedWeapon] = useState("none");
@@ -43,13 +53,14 @@ export function useEntityStats() {
     const [uiEquippedHat, setUiEquippedHat] = useState("none");
     const [uiEquippedNecklace, setUiEquippedNecklace] = useState("none");
     const [uiEquippedRing, setUiEquippedRing] = useState("none");
-    const [uiInventory, setUiInventory] = useState<{ name: string; count: number }[]>([]);
+    const [uiInventory, setUiInventory] = useState<{ id: string; name: string; count: number }[]>([]);
     const [uiStats, setUiStats] = useState<EntityStats>({
         STR: { base: 0, total: 0 },
         CHA: { base: 0, total: 0 },
         WIT: { base: 0, total: 0 },
         HP: { cur: 0, max: 0, bonus: 0 },
         SP: { cur: 0, max: 0, bonus: 0 },
+        REP: { base: 0, total: 0 },
     });
 
     // Companion
@@ -57,7 +68,7 @@ export function useEntityStats() {
     const [companionName, setCompanionName] = useState("");
     const [companionGender, setCompanionGender] = useState<"male" | "female" | "other">("other");
     const [companionCoins, setCompanionCoins] = useState(0);
-    const [companionInventory, setCompanionInventory] = useState<{ name: string; count: number }[]>([]);
+    const [companionInventory, setCompanionInventory] = useState<{ id: string; name: string; count: number }[]>([]);
     const [companionEquipment, setCompanionEquipment] = useState<EquipmentSet>({
         weapon: "none", armor: "none", outfit: "none", hat: "none", necklace: "none", ring: "none"
     });
@@ -67,9 +78,11 @@ export function useEntityStats() {
         WIT: { base: 0, total: 0 },
         HP: { cur: 0, max: 0, bonus: 0 },
         SP: { cur: 0, max: 0, bonus: 0 },
+        REP: { base: 0, total: 0 },
     });
 
     const [gender, setGender] = useState<"male" | "female" | "other">("male");
+    const [charName, setCharName] = useState("Traveler");
 
     function asNumber(v: any, fallback = 0) {
         if (typeof v === "number") return v;
@@ -98,6 +111,10 @@ export function useEntityStats() {
         return ITEM_NAMES[norm] ?? norm;
     }
 
+    function getItemSlot(id: string) {
+        return ITEM_SLOTS[normalizeItemId(id)] || "none";
+    }
+
     function inkListToIds(v: any): string[] {
         if (v == null) return [];
         const s: string = typeof v === "string" ? v : (typeof v.toString === "function" ? v.toString() : "");
@@ -111,10 +128,12 @@ export function useEntityStats() {
         const baseWIT = asNumber((s as any).variablesState["WIT_BASE"], 0);
         const baseHP = asNumber((s as any).variablesState["HP_BASE"], 0);
         const baseSP = asNumber((s as any).variablesState["SP_BASE"], 0);
+        const baseREP = asNumber((s as any).variablesState["REP_BASE"], 0);
 
         let bonusSTR = 0;
         let bonusCHA = 0;
         let bonusWIT = 0;
+        let bonusREP = 0;
 
         equippedRaw.forEach(raw => {
             const id = normalizeItemId(raw);
@@ -123,6 +142,7 @@ export function useEntityStats() {
                 bonusSTR += s_item.STR ?? 0;
                 bonusCHA += s_item.CHA ?? 0;
                 bonusWIT += s_item.WIT ?? 0;
+                bonusREP += s_item.REP ?? 0;
             }
         });
 
@@ -148,6 +168,7 @@ export function useEntityStats() {
             WIT: { base: baseWIT, total: baseWIT + bonusWIT },
             HP: { cur: asNumber(s.variablesState["HP_CUR"], 0), max: totalHPMax, bonus: totalHPMax - baseHP },
             SP: { cur: asNumber(s.variablesState["SP_CUR"], 0), max: totalSPMax, bonus: totalSPMax - baseSP },
+            REP: { base: baseREP, total: baseREP + bonusREP },
         });
     }
 
@@ -173,12 +194,15 @@ export function useEntityStats() {
         const invWithCounts = invIds.map(id => {
             const countVar = `${id}_count`;
             const count = asNumber((s as any).variablesState[countVar], 1);
-            return { name: pretty(id), count };
+            return { id, name: pretty(id), count };
         });
         setUiInventory(invWithCounts);
 
         const gRaw = asString((s as any).variablesState["char_gender"], "male");
         setGender(gRaw as any);
+
+        const nameRaw = asString((s as any).variablesState["char_name"], "Traveler");
+        setCharName(nameRaw);
 
         calculateAndSetStats(s, !!skipSync, eqWraw, eqAraw, eqOraw, eqHraw, eqNraw, eqRraw);
 
@@ -206,7 +230,7 @@ export function useEntityStats() {
             const invVar = `${compId.replace("npc_", "")}_inv`;
             const compInvVal = (s as any).variablesState[invVar];
             const compInvIds = inkListToIds(compInvVal);
-            setCompanionInventory(compInvIds.map(id => ({ name: pretty(id), count: 1 })));
+            setCompanionInventory(compInvIds.map(id => ({ id, name: pretty(id), count: 1 })));
 
             const prefix = compId.replace("npc_", "");
             const compWeapon = normalizeItemId(asString((s as any).variablesState[`${prefix}_eq_weapon`], "none"));
@@ -217,16 +241,31 @@ export function useEntityStats() {
             const compRing = normalizeItemId(asString((s as any).variablesState[`${prefix}_eq_ring`], "none"));
             setCompanionEquipment({ weapon: compWeapon, armor: compArmor, outfit: compOutfit, hat: compHat, necklace: compNecklace, ring: compRing });
 
-            const NPC_BASE_STATS: Record<string, { STR: number; CHA: number; WIT: number; HP: number; SP: number }> = {
-                npc_goblin: { STR: 4, CHA: 4, WIT: 4, HP: 4, SP: 4 },
-                npc_kobold: { STR: 4, CHA: 4, WIT: 4, HP: 4, SP: 4 },
+            // Fetch base stats dynamically from Ink to support variable changes (e.g. REP)
+            const getCompStat = (stat: string) => {
+                try {
+                    return asNumber(s.EvaluateFunction("get_npc_stat_current", [stat]), 0);
+                } catch (e) {
+                    console.error("Error fetching companion stat", stat, e);
+                    return 0;
+                }
             };
-            const base = NPC_BASE_STATS[compId] || { STR: 0, CHA: 0, WIT: 0, HP: 0, SP: 0 };
+
+            const base = {
+                STR: getCompStat("STR"),
+                CHA: getCompStat("CHA"),
+                WIT: getCompStat("WIT"),
+                HP: getCompStat("HP"),
+                SP: getCompStat("SP"),
+                REP: getCompStat("REP"),
+            };
+
             let compBonusSTR = 0;
             let compBonusCHA = 0;
             let compBonusWIT = 0;
             let compBonusHP = 0;
             let compBonusSP = 0;
+            let compBonusREP = 0;
             [compWeapon, compArmor, compOutfit, compHat, compNecklace, compRing].forEach(id => {
                 const s_item = ITEM_STATS[id];
                 if (s_item) {
@@ -235,6 +274,7 @@ export function useEntityStats() {
                     compBonusWIT += s_item.WIT ?? 0;
                     compBonusHP += s_item.HP ?? 0;
                     compBonusSP += s_item.SP ?? 0;
+                    compBonusREP += s_item.REP ?? 0;
                 }
             });
             setCompanionStats({
@@ -243,6 +283,7 @@ export function useEntityStats() {
                 WIT: { base: base.WIT, total: base.WIT + compBonusWIT },
                 HP: { cur: Math.max(0, base.HP + compBonusHP), max: base.HP + compBonusHP, bonus: compBonusHP },
                 SP: { cur: 0, max: base.SP + compBonusSP, bonus: compBonusSP },
+                REP: { base: base.REP, total: base.REP + compBonusREP },
             });
         } else {
             setCompanionName("");
@@ -253,10 +294,13 @@ export function useEntityStats() {
                 CHA: { base: 0, total: 0 },
                 WIT: { base: 0, total: 0 },
                 HP: { cur: 0, max: 0, bonus: 0 },
-                SP: { cur: 0, max: 0, bonus: 0 }
+                SP: { cur: 0, max: 0, bonus: 0 },
+                REP: { base: 0, total: 0 },
             });
         }
     }
+
+
 
     return {
         uiCoins,
@@ -277,7 +321,11 @@ export function useEntityStats() {
         companionStats,
         gender,
         setGender,
+        charName,
         syncSidebar,
-        formatItemName: pretty
+        formatItemName: pretty,
+        getItemSlot,
+        // Helper to allow page.tsx to execute transfer
+        ITEM_STATS
     };
 }

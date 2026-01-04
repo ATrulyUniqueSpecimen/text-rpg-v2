@@ -1,7 +1,9 @@
 import React from "react";
 import { ResourceBar, AttributeBar } from "./StatBar";
 import { PaperDoll } from "./PaperDoll";
-import { InventoryList } from "./InventoryList";
+import { InventoryList, ItemAction } from "./InventoryList";
+
+
 
 type Stats = {
     STR: { base: number; total: number };
@@ -9,6 +11,7 @@ type Stats = {
     WIT: { base: number; total: number };
     HP: { cur: number; max: number; bonus?: number };
     SP: { cur: number; max: number; bonus?: number };
+    REP?: { base: number; total: number }; // Optional because not all entities have REP (player doesn't visualize it this way usually, but passed in stats)
 };
 
 type Equipment = {
@@ -26,7 +29,7 @@ type SideMenuProps = {
     stats: Stats;
     gender: "male" | "female" | "other";
     equipment: Equipment;
-    inventory: { name: string; count: number }[];
+    inventory: { id?: string; name: string; count: number }[];
     isMobile: boolean;
     isDarkMode: boolean;
     borderColor: string;
@@ -35,6 +38,11 @@ type SideMenuProps = {
     formatItemName: (id: string) => string;
     baseHP: number; // needed for HP base marker
     baseSP: number; // needed for SP base marker
+    isCompanion?: boolean;
+    description?: string;
+    onTransfer?: (itemId: string) => void; // Deprecated but kept for API compat if needed, though unused by InventoryList now
+    transferLabel?: string;
+    getItemActions?: (item: { id?: string; name: string; count: number }) => ItemAction[];
 };
 
 export function SideMenu({
@@ -51,7 +59,10 @@ export function SideMenu({
     bgColor,
     formatItemName,
     baseHP,
-    baseSP
+    baseSP,
+    isCompanion = false,
+    description,
+    getItemActions
 }: SideMenuProps) {
 
     const desktopStyle: React.CSSProperties = {
@@ -80,21 +91,42 @@ export function SideMenu({
 
     return (
         <aside style={isMobile ? mobileStyle : desktopStyle}>
-            <div style={{ fontWeight: 800, marginBottom: 12, fontSize: 14, opacity: 0.6 }}>{title}</div>
+            <div style={{ fontWeight: 800, marginBottom: 8, fontSize: 14, opacity: 0.6 }}>{title}</div>
+
+            {description && (
+                <div style={{ fontSize: 12, fontStyle: "italic", opacity: 0.8, marginBottom: 12, lineHeight: 1.4 }}>
+                    {description}
+                </div>
+            )}
 
             <div style={{ marginBottom: 16 }}>
                 <div style={{ opacity: 0.75, fontSize: 13, marginBottom: 2 }}>Coins</div>
                 <div style={{ fontSize: 20, fontWeight: 800 }}>{coins}</div>
             </div>
 
-            <ResourceBar
-                label="HP"
-                current={stats.HP.cur}
-                max={stats.HP.max}
-                bonus={stats.HP.bonus}
-                base={baseHP}
-                gradient="linear-gradient(90deg, #ff9d4d, #9d4dff)"
-            />
+            {!isCompanion && (
+                <ResourceBar
+                    label="HP"
+                    current={stats.HP.cur}
+                    max={stats.HP.max}
+                    bonus={stats.HP.bonus}
+                    base={baseHP}
+                    gradient="linear-gradient(90deg, #ff9d4d, #9d4dff)"
+                />
+            )}
+
+            {isCompanion && stats.REP && (
+                <ResourceBar
+                    label="REP"
+                    current={stats.REP.total} // REP usually doesn't have cur/max logic like HP, just total? Or base+bonus?
+                    max={20} // Arbitrary max for bar visualization? Or should we use base+20?
+                    // Let's assume max is dynamic or fixed high. User said starts at 5/10.
+                    // Let's set max to be max(20, total)
+                    base={stats.REP.base}
+                    bonus={stats.REP.total - stats.REP.base}
+                    gradient="linear-gradient(90deg, #ffd700, #8b4513)" // Yellow -> Brown
+                />
+            )}
 
             <ResourceBar
                 label="SP"
@@ -124,9 +156,13 @@ export function SideMenu({
                 formatItemName={formatItemName}
                 textColor={textColor}
                 bgColor={bgColor}
+                isMobile={isMobile}
             />
 
-            <InventoryList items={inventory} />
+            <InventoryList
+                items={inventory}
+                getItemActions={getItemActions}
+            />
         </aside>
     );
 }

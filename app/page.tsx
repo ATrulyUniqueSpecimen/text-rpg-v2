@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { SideMenu } from "./components/SideMenu";
 import { StartMenu } from "./components/StartMenu";
 import { CharacterCreator } from "./components/CharacterCreator";
+import { ConfirmationModal } from "./components/ConfirmationModal";
 import { useEntityStats } from "./hooks/useEntityStats";
 import { useInkGame } from "./hooks/useInkGame";
 
@@ -38,7 +39,9 @@ export default function Page() {
     localStorage.setItem("ink_achievements", JSON.stringify(achievements));
   }, [achievements]);
 
-  const [notification, setNotification] = useState<{ id: string; name: string; desc: string; status: "entering" | "active" | "exiting" } | null>(null);
+  // Notification State
+  type NotificationType = "achievement" | "refusal" | "info";
+  const [notification, setNotification] = useState<{ id: string; name: string; desc: string; type: NotificationType; status: "entering" | "active" | "exiting" } | null>(null);
   const [showOverwriteConfirm, setShowOverwriteConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
   const [showCharacterMenu, setShowCharacterMenu] = useState(false);
@@ -65,10 +68,13 @@ export default function Page() {
     gender,
     setGender,
     syncSidebar,
-    formatItemName: pretty
+    formatItemName: pretty,
+    charName,
+    getItemSlot, // Destructure this
   } = useEntityStats();
 
   const [stats, setStats] = useState({ STR_BASE: 4, CHA_BASE: 4, WIT_BASE: 4, HP_BASE: 4, SP_BASE: 4 });
+  const [name, setName] = useState("Traveler"); // NEW: Name State
   const STAT_POOL = 25;
 
   function unlockAchievement(id: string) {
@@ -81,7 +87,7 @@ export default function Page() {
       ].find(a => a.id === id);
 
       if (ach) {
-        setNotification({ ...ach, status: "entering" });
+        setNotification({ ...ach, type: "achievement", status: "entering" });
         setTimeout(() => setNotification(prev => prev ? { ...prev, status: "active" } : null), 1000);
         setTimeout(() => setNotification(prev => prev ? { ...prev, status: "exiting" } : null), 6000);
         setTimeout(() => setNotification(null), 6500);
@@ -100,8 +106,124 @@ export default function Page() {
     loadSlot,
     clearSlot,
     choose,
-    backToMenu
+    backToMenu,
+    refreshSlotPresence,
+    transferItemToCompanion,
+    transferItemFromCompanion,
+    getCompanionDesc,
+    equipItem,
+    unequipItem,
+    dropItem,
+    useItem
   } = useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievement });
+
+  // Transfer Logic
+  const [transferItem, setTransferItem] = useState<{ id: string, name: string } | null>(null);
+  const [dropItemTarget, setDropItemTarget] = useState<{ id: string, name: string } | null>(null); // Duplicate confirmation for Drop
+  const [useItemTarget, setUseItemTarget] = useState<{ id: string, name: string } | null>(null); // NEW: Confirmation for Use
+
+  function requestTransferToCompanion(itemId: string) {
+    setTransferItem({ id: itemId, name: pretty(itemId) });
+  }
+
+  function confirmTransfer() {
+    if (transferItem) {
+      transferItemToCompanion(transferItem.id);
+      setTransferItem(null);
+    }
+  }
+
+  function requestDrop(itemId: string) {
+    setDropItemTarget({ id: itemId, name: pretty(itemId) });
+  }
+
+  function confirmDrop() {
+    if (dropItemTarget) {
+      dropItem(dropItemTarget.id);
+      setDropItemTarget(null);
+    }
+  }
+
+  function requestUse(itemId: string) {
+    setUseItemTarget({ id: itemId, name: pretty(itemId) });
+  }
+
+  function confirmUse() {
+    if (useItemTarget) {
+      useItem(useItemTarget.id);
+      setUseItemTarget(null);
+    }
+  }
+
+  function handleTakeFromCompanion(itemId: string) {
+    const result = transferItemFromCompanion(itemId);
+    if (!result.success) {
+      setNotification({
+        id: "transfer_fail",
+        name: "Refused!",
+        desc: result.message,
+        type: "refusal",
+        status: "entering"
+      });
+      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "active" } : null), 500);
+      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "exiting" } : null), 3000);
+      setTimeout(() => setNotification(null), 3500);
+    } else {
+      setNotification({
+        id: "transfer_success",
+        name: "Item Taken",
+        desc: result.message,
+        type: "info",
+        status: "entering"
+      });
+      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "active" } : null), 500);
+      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "exiting" } : null), 3000);
+      setTimeout(() => setNotification(null), 3500);
+    }
+  }
+
+  // Item Action Generators
+  const getPlayerItemActions = (item: { id?: string; name: string; count: number }) => {
+    if (!item.id) return [];
+    const actions: any[] = [];
+    const slot = getItemSlot(item.id);
+
+    // Equip/Unequip Logic
+    if (slot && slot !== "none" && slot !== "consumable") {
+      const isEquipped = [uiEquippedWeapon, uiEquippedArmor, uiEquippedOutfit, uiEquippedHat, uiEquippedNecklace, uiEquippedRing].includes(item.id!);
+      if (isEquipped) {
+        actions.push({ label: "Unequip", color: "#9d4dff", onClick: () => unequipItem(slot) }); // Purple
+      } else {
+        actions.push({ label: "Equip", color: "#4dff4d", onClick: () => equipItem(item.id!, slot) }); // Green
+      }
+    }
+
+    // Use Consumable
+    if (slot === "consumable") {
+      actions.push({ label: "Use", color: "#3399ff", onClick: () => requestUse(item.id!) }); // Blue, calls requestUse now
+    }
+
+    // Drop
+    actions.push({ label: "Drop", color: "#ff4d4d", onClick: () => requestDrop(item.id!) }); // Red
+
+    // Give (if companion exists)
+    if (companionId !== "npc_none") {
+      actions.push({ label: "Give", color: "#ffd700", onClick: () => requestTransferToCompanion(item.id!) }); // Yellow
+    }
+
+    return actions;
+  };
+  // ...
+  // ...
+
+
+  const getCompanionItemActions = (item: { id?: string; name: string; count: number }) => {
+    if (!item.id) return [];
+    return [
+      { label: "Take", color: "#ffd700", onClick: () => handleTakeFromCompanion(item.id!) } // Yellow
+    ];
+  };
+
 
   function confirmTheme() {
     setIsDarkMode(pendingDarkMode);
@@ -134,12 +256,14 @@ export default function Page() {
     setPendingSlot(slot);
     setStats({ STR_BASE: 4, CHA_BASE: 4, WIT_BASE: 4, HP_BASE: 4, SP_BASE: 4 });
     setGender("male");
+    setName("Traveler"); // Reset Name
     setMode("stats");
     setShowOverwriteConfirm(false);
   }
 
   function handleQuickNewGame() {
-    const emptySlot = slotHasSave.indexOf(false);
+    // Find first slot that is null (empty)
+    const emptySlot = slotHasSave.findIndex(s => s === null);
     if (emptySlot !== -1) {
       beginNewGame(emptySlot);
     } else {
@@ -148,10 +272,12 @@ export default function Page() {
   }
 
   function handleQuickContinue() {
-    if (slotHasSave[activeSlot]) {
+    // Check if slotHasSave[activeSlot] is not null
+    if (slotHasSave[activeSlot] !== null) {
       loadSlot(activeSlot);
     } else {
-      const firstSave = slotHasSave.indexOf(true);
+      // Find first non-null slot
+      const firstSave = slotHasSave.findIndex(s => s !== null);
       if (firstSave !== -1) {
         setMenuView("saves");
       }
@@ -160,7 +286,7 @@ export default function Page() {
 
   function confirmStats() {
     if (pendingSlot === null) return;
-    if (slotHasSave[pendingSlot]) {
+    if (slotHasSave[pendingSlot] !== null) {
       setShowOverwriteConfirm(true);
     } else {
       executeStatsConfirm();
@@ -169,7 +295,7 @@ export default function Page() {
 
   function executeStatsConfirm() {
     if (pendingSlot === null) return;
-    startFreshInSlot(pendingSlot, stats, gender);
+    startFreshInSlot(pendingSlot, stats, gender, name); // Pass name
     setPendingSlot(null);
     setShowOverwriteConfirm(false);
   }
@@ -208,6 +334,8 @@ export default function Page() {
             pool={STAT_POOL}
             gender={gender}
             setGender={setGender}
+            name={name}
+            setName={setName}
             confirmStats={confirmStats}
             onBack={() => { setMode("menu"); setMenuView("saves"); setPendingSlot(null); }}
             textColor={textColor}
@@ -262,7 +390,7 @@ export default function Page() {
               {/* Mobile Character Menu - Shown above dialogue when visible */}
               {isMobileView && showCharacterMenu && (
                 <SideMenu
-                  title={`Slot ${activeSlot + 1}`}
+                  title={charName || `Slot ${activeSlot + 1}`}
                   coins={uiCoins}
                   stats={uiStats}
                   gender={gender}
@@ -279,6 +407,9 @@ export default function Page() {
                   formatItemName={pretty}
                   baseHP={stats.HP_BASE}
                   baseSP={stats.SP_BASE}
+                  onTransfer={undefined} // Handled by getItemActions
+                  transferLabel={undefined}
+                  getItemActions={getPlayerItemActions}
                 />
               )}
 
@@ -299,6 +430,11 @@ export default function Page() {
                   formatItemName={pretty}
                   baseHP={companionStats.HP.max - (companionStats.HP.bonus || 0)}
                   baseSP={companionStats.SP.max - (companionStats.SP.bonus || 0)}
+                  isCompanion={true}
+                  description={getCompanionDesc()}
+                  onTransfer={undefined} // Handled by getItemActions
+                  transferLabel={undefined}
+                  getItemActions={getCompanionItemActions}
                 />
               )}
 
@@ -314,7 +450,7 @@ export default function Page() {
                   border: `1px solid ${borderColor}`,
                   borderRadius: 12,
                   padding: 20,
-                  background: isDarkMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.8)",
+                  background: isDarkMode ? "rgba(0,0,0,0.2)" : "rgba(255,255,0.8)",
                   scrollBehavior: "smooth",
                   position: "relative"
                 }}
@@ -343,7 +479,7 @@ export default function Page() {
               {/* Desktop Character Menu - Shown to the right when visible */}
               {!isMobileView && showCharacterMenu && (
                 <SideMenu
-                  title={`Slot ${activeSlot + 1}`}
+                  title={charName || `Slot ${activeSlot + 1}`}
                   coins={uiCoins}
                   stats={uiStats}
                   gender={gender}
@@ -360,6 +496,9 @@ export default function Page() {
                   formatItemName={pretty}
                   baseHP={stats.HP_BASE}
                   baseSP={stats.SP_BASE}
+                  onTransfer={undefined} // Handled by getItemActions
+                  transferLabel={undefined}
+                  getItemActions={getPlayerItemActions}
                 />
               )}
 
@@ -380,6 +519,11 @@ export default function Page() {
                   formatItemName={pretty}
                   baseHP={companionStats.HP.max - (companionStats.HP.bonus || 0)}
                   baseSP={companionStats.SP.max - (companionStats.SP.bonus || 0)}
+                  isCompanion={true}
+                  description={getCompanionDesc()}
+                  onTransfer={undefined} // Handled by getItemActions
+                  transferLabel={undefined}
+                  getItemActions={getCompanionItemActions}
                 />
               )}
             </div>
@@ -388,13 +532,54 @@ export default function Page() {
         }
       </main >
 
+      {/* Transfer Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!transferItem}
+        title="Give Item?"
+        message={<>Are you sure you want to give <strong>{transferItem?.name}</strong> to {companionName}?</>}
+        subtext="You may not be able to get it back."
+        confirmLabel="Give Item"
+        confirmColor="#4d4dff"
+        onConfirm={confirmTransfer}
+        onCancel={() => setTransferItem(null)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Drop Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!dropItemTarget}
+        title="Drop Item?"
+        message={<>Are you sure you want to drop <strong>{dropItemTarget?.name}</strong>?</>}
+        subtext="It will be lost forever."
+        confirmLabel="Drop Item"
+        confirmColor="#ff4d4d"
+        onConfirm={confirmDrop}
+        onCancel={() => setDropItemTarget(null)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Use Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!useItemTarget}
+        title="Use Item?"
+        message={<>Are you sure you want to use <strong>{useItemTarget?.name}</strong>?</>}
+        subtext="Has single use."
+        confirmLabel="Use Item"
+        confirmColor="#3399ff"
+        onConfirm={confirmUse}
+        onCancel={() => setUseItemTarget(null)}
+        isDarkMode={isDarkMode}
+      />
+
       {/* Achievement Notification Popup */}
       {
         notification && (
           <div style={{
             position: "fixed", top: 20, right: 20, zIndex: 3000,
             background: isDarkMode ? "#1e1e1e" : "#fff",
-            border: "2px solid rgba(77,77,255,0.8)",
+            border: notification.type === "refusal" ? "2px solid rgba(255, 77, 77, 0.8)" :
+              notification.type === "info" ? "2px solid rgba(77, 255, 77, 0.8)" :
+                "2px solid rgba(77,77,255,0.8)", // Default/Achievement
             borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16,
             boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
             animation: notification.status === "entering" ? "slideInRight 0.5s ease forwards" : notification.status === "exiting" ? "slideOutRight 0.5s ease forwards" : "none"
@@ -402,53 +587,78 @@ export default function Page() {
             <div style={{
               position: "relative", width: 56, height: 56,
               background: isDarkMode ? "transparent" : "rgba(255,255,255,0.4)",
-              border: "2px solid rgba(77,77,255,0.8)",
+              border: notification.type === "refusal" ? "2px solid rgba(255, 77, 77, 0.8)" :
+                notification.type === "info" ? "2px solid rgba(77, 255, 77, 0.8)" :
+                  "2px solid rgba(77,77,255,0.8)",
               borderRadius: 12, overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 0 10px rgba(77,77,255,0.3)"
+              boxShadow: notification.type === "refusal" ? "0 0 10px rgba(255, 77, 77, 0.3)" :
+                notification.type === "info" ? "0 0 10px rgba(77, 255, 77, 0.3)" :
+                  "0 0 10px rgba(77,77,255,0.3)"
             }}>
-              <svg viewBox="0 0 24 24" style={{ width: "70%", height: "70%" }}>
-                <defs>
-                  <linearGradient id="pop-grad-vertical" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stopColor="#ff4d4d" />
-                    <stop offset="100%" stopColor="#4d4dff" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
-                  fill="rgba(128,128,128,0.4)"
-                />
-                <path
-                  d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
-                  fill="url(#pop-grad-vertical)"
-                  style={{
-                    clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(100% 0 0 0)",
-                    transition: "clip-path 0.5s ease-out"
-                  }}
-                />
-              </svg>
+              {notification.type === "achievement" ? (
+                <svg viewBox="0 0 24 24" style={{ width: "70%", height: "70%" }}>
+                  <defs>
+                    <linearGradient id="pop-grad-vertical" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#ff4d4d" />
+                      <stop offset="100%" stopColor="#4d4dff" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
+                    fill="rgba(128,128,128,0.4)"
+                  />
+                  <path
+                    d="M19,5h-2V3H7v2H5C3.9,5,3,5.9,3,7v1c0,2.5,1.9,4.6,4.3,4.9c0.7,1.1,1.7,2,3,2.4V19H7v2h10v-2h-3.3v-3.7c1.2-0.4,2.2-1.3,3-2.4C19.1,12.6,21,10.5,21,8V7C21,5.9,20.1,5,19,5z M5,8V7h2v3.8C5.6,10.3,5,9.2,5,8z M19,8c0,1.2-0.6,2.3-1.6,2.8V7h2V8z"
+                    fill="url(#pop-grad-vertical)"
+                    style={{
+                      clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(100% 0 0 0)",
+                      transition: "clip-path 0.5s ease-out"
+                    }}
+                  />
+                </svg>
+              ) : notification.type === "refusal" ? (
+                <div style={{ fontSize: 24 }}>🛑</div>
+              ) : (
+                <div style={{ fontSize: 24 }}>✅</div>
+              )}
             </div>
             <div>
               <div style={{ position: "relative" }}>
-                <div style={{
-                  fontWeight: 800, fontSize: 16, marginBottom: 2,
-                  color: "rgba(128,128,128,0.6)"
-                }}>
-                  Achievement Unlocked!
-                </div>
-                <div style={{
-                  position: "absolute", top: 0, left: 0,
-                  fontWeight: 800, fontSize: 16, width: "100%",
-                  background: "linear-gradient(90deg, #ff4d4d, #4d4dff)",
-                  WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-                  clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
-                  transition: "clip-path 0.5s ease-out",
-                  pointerEvents: "none"
-                }}>
-                  Achievement Unlocked!
-                </div>
+                {notification.type === "achievement" && (
+                  <>
+                    <div style={{
+                      fontWeight: 800, fontSize: 16, marginBottom: 2,
+                      color: "rgba(128,128,128,0.6)"
+                    }}>
+                      Achievement Unlocked!
+                    </div>
+                    <div style={{
+                      position: "absolute", top: 0, left: 0,
+                      fontWeight: 800, fontSize: 16, width: "100%",
+                      background: "linear-gradient(90deg, #ff4d4d, #4d4dff)",
+                      WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+                      clipPath: notification.status === "active" ? "inset(0 0 0 0)" : "inset(0 100% 0 0)",
+                      transition: "clip-path 0.5s ease-out",
+                      pointerEvents: "none"
+                    }}>
+                      Achievement Unlocked!
+                    </div>
+                  </>
+                )}
+                {notification.type !== "achievement" && (
+                  <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 2, color: notification.type === "refusal" ? "#ff4d4d" : "#4dff4d" }}>
+                    {notification.name}
+                  </div>
+                )}
               </div>
-              <div style={{ fontWeight: 700, fontSize: 14 }}>{notification.name}</div>
-              <div style={{ fontSize: 12, opacity: 0.6 }}>{notification.desc}</div>
+              {notification.type === "achievement" ? (
+                <>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>{notification.name}</div>
+                  <div style={{ fontSize: 12, opacity: 0.6 }}>{notification.desc}</div>
+                </>
+              ) : (
+                <div style={{ fontSize: 13, opacity: 0.8 }}>{notification.desc}</div>
+              )}
             </div>
           </div>
         )
@@ -461,30 +671,7 @@ export default function Page() {
         opacity: isTransitioning ? 1 : 0, transition: "opacity 0.5s ease"
       }} />
 
-      <style>{`
-        .equipment-slot:hover .slot-tooltip { opacity: 1 !important; }
-        .equipment-slot:hover { border-color: ${textColor} !important; transform: translateY(-2px); }
-        button { transition: all 0.2s ease; font-family: inherit; }
-        button:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
-        button:active:not(:disabled) { transform: translateY(0); }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideInRight {
-          from { transform: translateX(110%); }
-          to { transform: translateX(0); }
-        }
-        @keyframes slideOutRight {
-          from { transform: translateX(0); }
-          to { transform: translateX(110%); }
-        }
-        @keyframes gradientSlide {
-          from { background-position: 0% 100%; }
-          to { background-position: 0% 0%; }
-        }
-      `}</style>
+
     </div >
   );
 }
