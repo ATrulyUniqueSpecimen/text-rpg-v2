@@ -43,6 +43,7 @@ type SideMenuProps = {
     onTransfer?: (itemId: string) => void; // Deprecated but kept for API compat if needed, though unused by InventoryList now
     transferLabel?: string;
     getItemActions?: (item: { id?: string; name: string; count: number }) => ItemAction[];
+    onTakeCoins?: () => void;
 };
 
 export function SideMenu({
@@ -62,11 +63,12 @@ export function SideMenu({
     baseSP,
     isCompanion = false,
     description,
-    getItemActions
+    getItemActions,
+    onTakeCoins
 }: SideMenuProps) {
 
     const desktopStyle: React.CSSProperties = {
-        width: 260,
+        width: 325,
         border: `1px solid ${borderColor}`,
         borderRadius: 12,
         padding: 16,
@@ -101,7 +103,28 @@ export function SideMenu({
 
             <div style={{ marginBottom: 16 }}>
                 <div style={{ opacity: 0.75, fontSize: 13, marginBottom: 2 }}>Coins</div>
-                <div style={{ fontSize: 20, fontWeight: 800 }}>{coins}</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div style={{ fontSize: 20, fontWeight: 800 }}>{coins}</div>
+                    {isCompanion && coins > 0 && onTakeCoins && (
+                        <button
+                            onClick={onTakeCoins}
+                            style={{
+                                background: "#ffd700",
+                                border: "none",
+                                borderRadius: 4,
+                                color: "#000",
+                                fontSize: 10,
+                                fontWeight: 700,
+                                padding: "2px 6px",
+                                cursor: "pointer",
+                                opacity: 0.9
+                            }}
+                            title="Take Coins"
+                        >
+                            Take
+                        </button>
+                    )}
+                </div>
             </div>
 
             {!isCompanion && (
@@ -118,13 +141,11 @@ export function SideMenu({
             {isCompanion && stats.REP && (
                 <ResourceBar
                     label="REP"
-                    current={stats.REP.total} // REP usually doesn't have cur/max logic like HP, just total? Or base+bonus?
-                    max={20} // Arbitrary max for bar visualization? Or should we use base+20?
-                    // Let's assume max is dynamic or fixed high. User said starts at 5/10.
-                    // Let's set max to be max(20, total)
+                    current={stats.REP.total}
+                    max={20}
                     base={stats.REP.base}
                     bonus={stats.REP.total - stats.REP.base}
-                    gradient="linear-gradient(90deg, #ffd700, #8b4513)" // Yellow -> Brown
+                    gradient="linear-gradient(90deg, #ffd700, #8b4513)"
                 />
             )}
 

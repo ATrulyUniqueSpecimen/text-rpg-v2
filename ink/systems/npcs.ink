@@ -17,6 +17,14 @@ VAR goblin_eq_hat = ITEMS.none
 VAR goblin_eq_necklace = ITEMS.none
 VAR goblin_eq_ring = ITEMS.none
 
+// Goblin Item Counts
+VAR goblin_rusty_sword_count = 1
+VAR goblin_leather_armor_count = 1
+VAR goblin_old_sack_count = 1
+VAR goblin_small_knife_count = 1
+VAR goblin_potion_of_spirit_count = 1
+VAR goblin_potion_of_stupidity_count = 1
+
 // Kobold data
 VAR kobold_rep = 10
 VAR kobold_inv = (rusty_sword, leather_armor, old_sack, small_knife, potion_of_spirit, potion_of_stupidity)
@@ -27,6 +35,14 @@ VAR kobold_eq_outfit = ITEMS.none
 VAR kobold_eq_hat = ITEMS.none
 VAR kobold_eq_necklace = ITEMS.none
 VAR kobold_eq_ring = ITEMS.none
+
+// Kobold Item Counts
+VAR kobold_rusty_sword_count = 1
+VAR kobold_leather_armor_count = 1
+VAR kobold_old_sack_count = 1
+VAR kobold_small_knife_count = 1
+VAR kobold_potion_of_spirit_count = 1
+VAR kobold_potion_of_stupidity_count = 1
 
 // NPC Names
 === function get_npc_name(npc) ===
@@ -55,6 +71,52 @@ VAR REP_THRESHOLD_TAKE = 10
     - NPCS.npc_kobold: ~ return "A small, scaled creature with quick eyes and a nervous twitch."
     - else: ~ return ""
     }
+
+=== function get_npc_item_count(npc, item) ===
+    { npc:
+    - NPCS.npc_goblin:
+        { item:
+        - ITEMS.rusty_sword: ~ return goblin_rusty_sword_count
+        - ITEMS.leather_armor: ~ return goblin_leather_armor_count
+        - ITEMS.old_sack: ~ return goblin_old_sack_count
+        - ITEMS.small_knife: ~ return goblin_small_knife_count
+        - ITEMS.potion_of_spirit: ~ return goblin_potion_of_spirit_count
+        - ITEMS.potion_of_stupidity: ~ return goblin_potion_of_stupidity_count
+        }
+    - NPCS.npc_kobold:
+        { item:
+        - ITEMS.rusty_sword: ~ return kobold_rusty_sword_count
+        - ITEMS.leather_armor: ~ return kobold_leather_armor_count
+        - ITEMS.old_sack: ~ return kobold_old_sack_count
+        - ITEMS.small_knife: ~ return kobold_small_knife_count
+        - ITEMS.potion_of_spirit: ~ return kobold_potion_of_spirit_count
+        - ITEMS.potion_of_stupidity: ~ return kobold_potion_of_stupidity_count
+        }
+    }
+    ~ return 0
+
+=== function set_npc_item_count(npc, item, count) ===
+    { npc:
+    - NPCS.npc_goblin:
+        { item:
+        - ITEMS.rusty_sword: ~ goblin_rusty_sword_count = count
+        - ITEMS.leather_armor: ~ goblin_leather_armor_count = count
+        - ITEMS.old_sack: ~ goblin_old_sack_count = count
+        - ITEMS.small_knife: ~ goblin_small_knife_count = count
+        - ITEMS.potion_of_spirit: ~ goblin_potion_of_spirit_count = count
+        - ITEMS.potion_of_stupidity: ~ goblin_potion_of_stupidity_count = count
+        }
+    - NPCS.npc_kobold:
+        { item:
+        - ITEMS.rusty_sword: ~ kobold_rusty_sword_count = count
+        - ITEMS.leather_armor: ~ kobold_leather_armor_count = count
+        - ITEMS.old_sack: ~ kobold_old_sack_count = count
+        - ITEMS.small_knife: ~ kobold_small_knife_count = count
+        - ITEMS.potion_of_spirit: ~ kobold_potion_of_spirit_count = count
+        - ITEMS.potion_of_stupidity: ~ kobold_potion_of_stupidity_count = count
+        }
+    }
+
 
 === function get_npc_stat(npc, stat) ===
     { npc:
@@ -242,9 +304,18 @@ VAR REP_THRESHOLD_TAKE = 10
 // Transfer Logic Logic
 === function transfer_to_companion(npc, item) ===
     ~ temp npc_inv = get_npc_inv(npc)
-    // Remove from player (assuming 'inv' is global player inventory list)
-    ~ inv -= item
+    // Decrement player count
+    ~ temp current = get_item_count(item)
+    ~ set_item_count(item, current - 1)
+    
+    // Remove from player inv list only if ran out
+    { get_item_count(item) <= 0:
+        ~ inv -= item
+    }
+
     // Add to NPC
+    ~ temp npc_cur = get_npc_item_count(npc, item)
+    ~ set_npc_item_count(npc, item, npc_cur + 1)
     ~ set_npc_inv(npc, npc_inv + item)
 
 === function check_can_take_item(npc) ===
@@ -257,12 +328,29 @@ VAR REP_THRESHOLD_TAKE = 10
 
 === function transfer_from_companion(npc, item) ===
     ~ temp npc_inv = get_npc_inv(npc)
-    // Unequip from NPC if they are wearing it
-    ~ unequip_npc_item_if_equipped(npc, item)
-    // Remove from NPC
-    ~ set_npc_inv(npc, npc_inv - item)
-    // Add to player
-    ~ inv += item
+    ~ temp npc_current = get_npc_item_count(npc, item)
+
+    // Decrement NPC count
+    ~ set_npc_item_count(npc, item, npc_current - 1)
+
+    // If ran out
+    { get_npc_item_count(npc, item) <= 0:
+         ~ unequip_npc_item_if_equipped(npc, item)
+         ~ set_npc_inv(npc, npc_inv - item)
+    }
+
+    // Add to player using helper to update counts
+    ~ temp added = take_item(item)
+
+=== function transfer_coins_from_companion(npc) ===
+    ~ temp npc_coins = get_npc_coins(npc)
+    { npc_coins > 0:
+        ~ set_npc_coins(npc, 0)
+        ~ coins += npc_coins
+        ~ return true
+    - else:
+        ~ return false
+    }
 
 // --- JS Interop Wrappers ---
 
@@ -275,11 +363,17 @@ VAR REP_THRESHOLD_TAKE = 10
 === function get_npc_give_item_text_current() ===
     ~ return get_npc_give_item_text(current_companion)
 
+=== function get_npc_refuse_outfit_text_current() ===
+    ~ return get_npc_refuse_outfit_text(current_companion)
+
 === function get_npc_refuse_item_text_current() ===
     ~ return get_npc_refuse_item_text(current_companion)
 
 === function get_npc_stat_current(stat) ===
     ~ return get_npc_stat(current_companion, stat)
+
+=== function get_npc_coins_current() ===
+    ~ return get_npc_coins(current_companion)
 
 === function transfer_from_companion_by_name(item_name) ===
     // Find item by name
@@ -331,6 +425,9 @@ VAR REP_THRESHOLD_TAKE = 10
     { item_to_transfer != ITEMS.none:
          ~ transfer_to_companion(current_companion, item_to_transfer)
     }
+
+=== function transfer_coins_from_companion_current() ===
+    ~ return transfer_coins_from_companion(current_companion)
 
 === function equip_item_by_name(slot, item_name) ===
     ~ temp item_to_equip = ITEMS.none
@@ -475,4 +572,108 @@ VAR REP_THRESHOLD_TAKE = 10
          { get_item_count(item_to_drop) <= 0:
              ~ inv -= item_to_drop
          }
+    }
+
+// --- NPC Interaction Logic ---
+
+// Helper to look up item from name (Reused pattern)
+=== function get_item_from_name(name) ===
+    { name:
+        - "rusty_sword": ~ return ITEMS.rusty_sword
+        - "leather_armor": ~ return ITEMS.leather_armor
+        - "old_sack": ~ return ITEMS.old_sack
+        - "small_knife": ~ return ITEMS.small_knife
+        - "potion_of_spirit": ~ return ITEMS.potion_of_spirit
+        - "potion_of_stupidity": ~ return ITEMS.potion_of_stupidity
+        - else: ~ return ITEMS.none
+    }
+
+=== function equip_npc_item_current(slot, item_name) ===
+    ~ temp item = get_item_from_name(item_name)
+    { item != ITEMS.none:
+        // Use slot to determine variable to set for current companion
+        { current_companion:
+            - NPCS.npc_goblin:
+                { slot:
+                    - "weapon": ~ goblin_eq_weapon = item
+                    - "armor": ~ goblin_eq_armor = item
+                    - "outfit": ~ goblin_eq_outfit = item
+                    - "hat": ~ goblin_eq_hat = item
+                    - "necklace": ~ goblin_eq_necklace = item
+                    - "ring": ~ goblin_eq_ring = item
+                }
+            - NPCS.npc_kobold:
+                { slot:
+                    - "weapon": ~ kobold_eq_weapon = item
+                    - "armor": ~ kobold_eq_armor = item
+                    - "outfit": ~ kobold_eq_outfit = item
+                    - "hat": ~ kobold_eq_hat = item
+                    - "necklace": ~ kobold_eq_necklace = item
+                    - "ring": ~ kobold_eq_ring = item
+                }
+        }
+    }
+
+=== function unequip_npc_item_current(slot) ===
+    { current_companion:
+        - NPCS.npc_goblin:
+            { slot:
+                - "weapon": ~ goblin_eq_weapon = ITEMS.none
+                - "armor": ~ goblin_eq_armor = ITEMS.none
+                - "outfit": ~ goblin_eq_outfit = ITEMS.none
+                - "hat": ~ goblin_eq_hat = ITEMS.none
+                - "necklace": ~ goblin_eq_necklace = ITEMS.none
+                - "ring": ~ goblin_eq_ring = ITEMS.none
+            }
+        - NPCS.npc_kobold:
+            { slot:
+                - "weapon": ~ kobold_eq_weapon = ITEMS.none
+                - "armor": ~ kobold_eq_armor = ITEMS.none
+                - "outfit": ~ kobold_eq_outfit = ITEMS.none
+                - "hat": ~ kobold_eq_hat = ITEMS.none
+                - "necklace": ~ kobold_eq_necklace = ITEMS.none
+                - "ring": ~ kobold_eq_ring = ITEMS.none
+            }
+    }
+
+=== function drop_npc_item_current(item_name) ===
+    ~ temp item = get_item_from_name(item_name)
+    { item != ITEMS.none:
+        ~ temp cur_inv = get_npc_inv(current_companion)
+        ~ temp count = get_npc_item_count(current_companion, item)
+
+        // Decrement
+        ~ set_npc_item_count(current_companion, item, count - 1)
+
+        { get_npc_item_count(current_companion, item) <= 0:
+            // Remove from inventory
+            ~ set_npc_inv(current_companion, cur_inv - item)
+            // Unequip if needed
+            ~ unequip_npc_item_if_equipped(current_companion, item)
+        }
+    }
+
+=== function use_npc_item_current(item_name) ===
+    ~ temp item = get_item_from_name(item_name)
+    { item != ITEMS.none:
+         ~ temp cur_inv = get_npc_inv(current_companion)
+         ~ temp count = get_npc_item_count(current_companion, item)
+        
+        // Decrement
+        ~ set_npc_item_count(current_companion, item, count - 1)
+
+        { get_npc_item_count(current_companion, item) <= 0:
+             ~ set_npc_inv(current_companion, cur_inv - item)
+        }
+    }
+
+=== function get_rep_threshold() ===
+    ~ return REP_THRESHOLD_TAKE
+
+=== function get_npc_item_count_current(item_name) ===
+    ~ temp item = get_item_from_name(item_name)
+    { item != ITEMS.none:
+         ~ return get_npc_item_count(current_companion, item)
+    - else:
+         ~ return 0
     }

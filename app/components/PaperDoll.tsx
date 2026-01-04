@@ -22,14 +22,15 @@ type PaperDollProps = {
 export function PaperDoll({ gender, equipment, isDarkMode, formatItemName, textColor, bgColor, isMobile }: PaperDollProps) {
     // Logic derived from companion menu to ensure correct alignment for both genders
     const avatarY = gender === "female" ? 0 : 0;
+    const slotShiftX = 16;
 
     const slots = [
-        { id: "hat", icon: "/assets/icon_hat.png", x: -6, y: 0, slot: equipment.hat },
-        { id: "outfit", icon: "/assets/icon_outfit.png", x: -6, y: 60, slot: equipment.outfit },
-        { id: "ring", icon: null, x: -6, y: 120, slot: equipment.ring },
-        { id: "necklace", icon: "/assets/icon_necklace.png", x: 180, y: 0, slot: equipment.necklace },
-        { id: "armor", icon: "/assets/icon_armor.png", x: 180, y: 60, slot: equipment.armor },
-        { id: "weapon", icon: "/assets/icon_weapon.png", x: 180, y: 120, slot: equipment.weapon },
+        { id: "hat", icon: "/assets/icon_hat.png", x: -6 + slotShiftX, y: 0, slot: equipment.hat },
+        { id: "outfit", icon: "/assets/icon_outfit.png", x: -6 + slotShiftX, y: 60, slot: equipment.outfit },
+        { id: "ring", icon: null, x: -6 + slotShiftX, y: 120, slot: equipment.ring },
+        { id: "necklace", icon: "/assets/icon_necklace.png", x: 180 + slotShiftX, y: 0, slot: equipment.necklace },
+        { id: "armor", icon: "/assets/icon_armor.png", x: 180 + slotShiftX, y: 60, slot: equipment.armor },
+        { id: "weapon", icon: "/assets/icon_weapon.png", x: 180 + slotShiftX, y: 120, slot: equipment.weapon },
     ] as const;
 
     return (
@@ -46,12 +47,12 @@ export function PaperDoll({ gender, equipment, isDarkMode, formatItemName, textC
 
             {/* Connection Lines */}
             <svg style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none", opacity: 0.3 }}>
-                <line x1={46} y1={24} x2={113} y2={15 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={46} y1={84} x2={100} y2={40 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={46} y1={144} x2={76} y2={94 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={180} y1={24} x2={113} y2={42 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={180} y1={84} x2={113} y2={55 + avatarY} stroke={textColor} strokeWidth="1" />
-                <line x1={180} y1={144} x2={150} y2={90 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={46 + slotShiftX} y1={24} x2={113 + slotShiftX} y2={15 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={46 + slotShiftX} y1={84} x2={100 + slotShiftX} y2={40 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={46 + slotShiftX} y1={144} x2={76 + slotShiftX} y2={94 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={180 + slotShiftX} y1={24} x2={113 + slotShiftX} y2={42 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={180 + slotShiftX} y1={84} x2={113 + slotShiftX} y2={55 + avatarY} stroke={textColor} strokeWidth="1" />
+                <line x1={180 + slotShiftX} y1={144} x2={150 + slotShiftX} y2={90 + avatarY} stroke={textColor} strokeWidth="1" />
             </svg>
 
             {/* Slots */}

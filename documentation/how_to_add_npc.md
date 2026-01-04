@@ -31,7 +31,7 @@ This guide covers all the steps required to add a new loot-able NPC to the game.
     - NPCS.npc_bandit: ~ return "male"
     ```
 
-5.  **Update `get_npc_stat`**: Add a case for the new NPC's stats.
+5.  **Update `get_npc_stat`**: Add a case for the new NPC's stats, **including REP**.
     ```ink
     - NPCS.npc_bandit:
         { stat:
@@ -39,6 +39,7 @@ This guide covers all the steps required to add a new loot-able NPC to the game.
         - "CHA": ~ return 3
         - "WIT": ~ return 4
         - "SP":  ~ return 4
+        - "REP": ~ return 5  // Starting Reputation (Required for coin sharing)
         - else: ~ return 0
         }
     ```
@@ -64,15 +65,34 @@ This guide covers all the steps required to add a new loot-able NPC to the game.
     ```
 
 9.  **Update Setters**: Update `set_npc_inv` and `set_npc_coins`.
+    ```ink
+    === function set_npc_inv(npc, new_inv) ===
+        { npc:
+        ...
+        - NPCS.npc_bandit: ~ bandit_inv = new_inv
+        ...
+        }
+        
+    === function set_npc_coins(npc, new_coins) ===
+        { npc:
+        ...
+        - NPCS.npc_bandit: ~ bandit_coins = new_coins
+        ...
+        }
+    ```
+    
+10. **Flavor Text & Descriptions**:
+    *   **Description**: Update `get_npc_desc`.
+        ```ink
+        - NPCS.npc_bandit: ~ return "A scrappy fighter with a mean look."
+        ```
+    *   **Responses**: Update `get_npc_refuse_outfit_text`, `get_npc_give_item_text`, and `get_npc_refuse_item_text` if you want custom dialogue.
 
 ## 2. Create the Encounter Scene (`ink/scenes/[npc]_encounter.ink`)
 
 1.  **Create a new file**: Copy an existing encounter (e.g., `goblin_encounter(test).ink`) as a template.
-
 2.  **Rename knots**: Update all knot names to be unique.
-
 3.  **Recruitment**: To allow recruiting the NPC, use `recruit_companion(NPCS.npc_bandit)`.
-
 4.  **Looting**: Use `-> loot_npc(NPCS.npc_bandit) ->`.
 
 ## 3. Include in Main Story (`ink/story.ink`)
@@ -82,127 +102,36 @@ This guide covers all the steps required to add a new loot-able NPC to the game.
     INCLUDE scenes/bandit_encounter.ink
     ```
 
-2.  **Call the starting knot**.
+2.  **Call the starting knot** in the story flow.
 
-## 4. Frontend Updates (`app/page.tsx`)
+## 4. Frontend Updates (`app/hooks/useEntityStats.ts`)
 
 > [!IMPORTANT]
-> Because properties like `NPC_NAMES` and `NPC_GENDERS` are duplicated in the frontend for performance/sync reasons, you must update `app/page.tsx` when adding a new NPC.
-> Look for the `syncSidebar` function (or search for `NPC_NAMES`) and add the new NPC to the lookup maps.
+> You must manually add the frontend mapping so the UI knows the NPC's Name and Gender immediately upon loading stats.
+
+1.  Open `app/hooks/useEntityStats.ts`.
+2.  Find the `syncSidebar` function.
+3.  Locate the local variables `NPC_NAMES` and `NPC_GENDERS` (inside the `if (compId !== "npc_none")` block).
+4.  Add your new NPC:
+    ```typescript
+    const NPC_NAMES: Record<string, string> = { 
+        npc_goblin: "Goblin", 
+        npc_kobold: "Kobold",
+        npc_bandit: "Bandit" // Add this
+    };
+    const NPC_GENDERS: Record<string, "male" | "female" | "other"> = { 
+        npc_goblin: "male", 
+        npc_kobold: "female",
+        npc_bandit: "male" // Add this
+    };
+    ```
 
 ## 5. Verify
 
 -   Recompile your Ink story: `.\inklecate.exe -o public/story.json ink/story.ink`
--   Run the game and test.
-
-## Quick Checklist
-
-When adding a new NPC, you must update these locations in `npcs.ink`:
-
-| Location            | What to Add                                      |
-| :------------------ | :----------------------------------------------- |
-| `LIST NPCS`         | `npc_[name]`                                     |
-| `VAR [name]_inv`    | Inventory variable                               |
-| `VAR [name]_coins`  | Coins variable                                   |
-| `VAR [name]_eq_...` | 6 Equipment slot variables                       |
-| `get_npc_name`      | Display name                                     |
-| `get_npc_gender`    | Gender                                           |
-| `get_npc_stat`      | Stats                                            |
-| `get_npc_inv`       | Inventory getter                                 |
-| `get_npc_coins`     | Coins getter                                     |
-| `get_npc_eq_...`    | 6 Equipment getters                              |
-| `set_npc_inv`       | Inventory setter                                 |
-| `set_npc_coins`     | Coins setter                                     |
-
-    ```ink
-    - NPCS.npc_bandit:
-        { stat:
-        - "STR": ~ return 5
-        - "CHA": ~ return 3
-        - "WIT": ~ return 4
-        - "SP":  ~ return 4
-        - "REP": ~ return 5  // Starting Reputation
-        - else: ~ return 0
-        }
-    ```
-
-    **Also define `get_npc_desc`:**
-    ```ink
-    === function get_npc_desc(npc) ===
-        { npc:
-        - NPCS.npc_bandit: ~ return "A scrappy fighter with a mean look."
-        ...
-        }
-    ```
-
-    **And Flavor Text:**
-    *   `get_npc_refuse_outfit_text(npc)`
-    *   `get_npc_give_item_text(npc)` (Success taking item)
-    *   `get_npc_refuse_item_text(npc)` (Failure taking item)
-
-5.  **Update `get_npc_inv`**: Add a case to return the NPC's inventory.
-    ```ink
-    - NPCS.npc_bandit: ~ return bandit_inv
-    ```
-
-6.  **Update `get_npc_coins`**: Add a case to return the NPC's coins.
-    ```ink
-    - NPCS.npc_bandit: ~ return bandit_coins
-    ```
-
-7.  **Update `set_npc_inv`**: Add a case to set the NPC's inventory.
-    ```ink
-    - NPCS.npc_bandit: ~ bandit_inv = new_inv
-    ```
-
-8.  **Update `set_npc_coins`**: Add a case to set the NPC's coins.
-    ```ink
-    - NPCS.npc_bandit: ~ bandit_coins = new_coins
-    ```
-
-## 2. Create the Encounter Scene (`ink/scenes/[npc]_encounter.ink`)
-
-1.  **Create a new file**: Copy an existing encounter (e.g., `goblin_encounter(test).ink`) as a template.
-
-2.  **Rename knots**: Update all knot names to be unique (e.g., `find_bandit`, `attack_bandit`, `loot_bandit`, `after_bandit`).
-
-3.  **Update loot call**: Ensure the loot knot calls the generic looting system with the correct NPC.
-    ```ink
-    === loot_bandit ===
-    -> loot_npc(NPCS.npc_bandit) ->
-    -> after_bandit
-    ```
-
-4.  **Update skill checks**: Adjust any DCs or stat checks as needed for the encounter's difficulty.
-
-## 3. Include in Main Story (`ink/story.ink`)
-
-1.  **INCLUDE the scene file**:
-    ```ink
-    INCLUDE scenes/bandit_encounter.ink
-    ```
-
-2.  **Call the starting knot** (wherever appropriate in your story flow):
-    ```ink
-    -> find_bandit ->
-    ```
-
-## 4. Verify
-
--   Recompile your Ink story: `.\inklecate.exe -o public/story.json ink/story.ink`
--   Run the game and test the encounter, looting, and skill checks.
-
-## Quick Checklist
-
-When adding a new NPC, you must update these locations in `npcs.ink`:
-
-| Location            | What to Add                                      |
-| :------------------ | :----------------------------------------------- |
-| `LIST NPCS`         | `npc_[name]`                                     |
-| `VAR [name]_inv`    | New global variable for inventory                |
-| `VAR [name]_coins`  | New global variable for coins                    |
-| `get_npc_stat`      | New case returning stats                         |
-| `get_npc_inv`       | New case returning `[name]_inv`                  |
-| `get_npc_coins`     | New case returning `[name]_coins`                |
-| `set_npc_inv`       | New case setting `[name]_inv`                    |
-| `set_npc_coins`     | New case setting `[name]_coins`                  |
+-   Run the game.
+-   Recruit the NPC and verify:
+    -   Name and Gender appear correctly in the sidebar.
+    -   Stats (including REP) are visible.
+    -   Inventory and Equipment are visible.
+    -   "Take Coins" button appears if they have coins and you have high enough REP.

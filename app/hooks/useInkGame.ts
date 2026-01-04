@@ -303,6 +303,98 @@ export function useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievemen
         }
     }
 
+    function transferCoinsFromCompanion(): boolean {
+        if (!story) return false;
+        try {
+            const success = story.EvaluateFunction("transfer_coins_from_companion_current", []);
+            if (success) {
+                saveToSlot(story, activeSlot, lines);
+                syncSidebar(story);
+                return true;
+            } else {
+                return false;
+            }
+        } catch (e) {
+            console.error("Coin transfer failed", e);
+            return false;
+        }
+    }
+
+    function equipCompanionItem(itemId: string, slot: string) {
+        if (!story) return;
+        const cleanId = normalizeItemId(itemId);
+        try {
+            story.EvaluateFunction("equip_npc_item_current", [slot, cleanId]);
+            saveToSlot(story, activeSlot, lines);
+            syncSidebar(story);
+        } catch (e) {
+            console.error("Companion Equip failed", e);
+        }
+    }
+
+    function unequipCompanionItem(slot: string) {
+        if (!story) return;
+        try {
+            story.EvaluateFunction("unequip_npc_item_current", [slot]);
+            saveToSlot(story, activeSlot, lines);
+            syncSidebar(story);
+        } catch (e) {
+            console.error("Companion Unequip failed", e);
+        }
+    }
+
+    function dropCompanionItem(itemId: string) {
+        if (!story) return;
+        const cleanId = normalizeItemId(itemId);
+        try {
+            story.EvaluateFunction("drop_npc_item_current", [cleanId]);
+            saveToSlot(story, activeSlot, lines);
+            syncSidebar(story);
+        } catch (e) {
+            console.error("Companion Drop failed", e);
+        }
+    }
+
+    function useCompanionItem(itemId: string) {
+        if (!story) return;
+        const cleanId = normalizeItemId(itemId);
+        try {
+            story.EvaluateFunction("use_npc_item_current", [cleanId]);
+            saveToSlot(story, activeSlot, lines);
+            syncSidebar(story);
+        } catch (e) {
+            console.error("Companion Use failed", e);
+        }
+    }
+
+    function checkCompanionRefusal(): boolean {
+        if (!story) return true; // Fail safe? Or block? Assume blocked if no story.
+        try {
+            // Returns true if CAN take (i.e. NOT refused)
+            return !!story.EvaluateFunction("check_can_take_item_current", []);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function getRefusalText(): string {
+        if (!story) return "I can't let you do that.";
+        try {
+            return story.EvaluateFunction("get_npc_refuse_item_text_current", []) as string;
+        } catch (e) {
+            return "I can't let you do that.";
+        }
+    }
+
+    function getOutfitReactionText(): string {
+        if (!story) return "The companion looks uncomfortable.";
+        try {
+            return story.EvaluateFunction("get_npc_refuse_outfit_text_current", []) as string;
+        } catch (e) {
+            return "The companion looks uncomfortable.";
+        }
+    }
+
     return {
         story,
         lines,
@@ -318,10 +410,18 @@ export function useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievemen
         refreshSlotPresence,
         transferItemToCompanion,
         transferItemFromCompanion,
+        transferCoinsFromCompanion,
         getCompanionDesc,
         equipItem,
         unequipItem,
         dropItem,
-        useItem
+        useItem,
+        equipCompanionItem,
+        unequipCompanionItem,
+        dropCompanionItem,
+        useCompanionItem,
+        checkCompanionRefusal,
+        getRefusalText,
+        getOutfitReactionText
     };
 }

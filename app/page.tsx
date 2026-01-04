@@ -114,13 +114,27 @@ export default function Page() {
     equipItem,
     unequipItem,
     dropItem,
-    useItem
+    useItem,
+    transferCoinsFromCompanion,
+    equipCompanionItem,
+    unequipCompanionItem,
+    dropCompanionItem,
+    useCompanionItem,
+    checkCompanionRefusal,
+    getRefusalText,
+    getOutfitReactionText
   } = useInkGame({ syncSidebar, setMode, setMenuView, unlockAchievement });
 
   // Transfer Logic
   const [transferItem, setTransferItem] = useState<{ id: string, name: string } | null>(null);
-  const [dropItemTarget, setDropItemTarget] = useState<{ id: string, name: string } | null>(null); // Duplicate confirmation for Drop
-  const [useItemTarget, setUseItemTarget] = useState<{ id: string, name: string } | null>(null); // NEW: Confirmation for Use
+  const [dropItemTarget, setDropItemTarget] = useState<{ id: string, name: string } | null>(null);
+  const [useItemTarget, setUseItemTarget] = useState<{ id: string, name: string } | null>(null);
+
+  // Companion Action Logic
+  const [refusalModal, setRefusalModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: "" });
+  const [reactionModal, setReactionModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: "" });
+  const [companionDropTarget, setCompanionDropTarget] = useState<{ id: string, name: string } | null>(null);
+  const [companionUseTarget, setCompanionUseTarget] = useState<{ id: string, name: string } | null>(null);
 
   function requestTransferToCompanion(itemId: string) {
     setTransferItem({ id: itemId, name: pretty(itemId) });
@@ -155,30 +169,81 @@ export default function Page() {
     }
   }
 
-  function handleTakeFromCompanion(itemId: string) {
-    const result = transferItemFromCompanion(itemId);
-    if (!result.success) {
-      setNotification({
-        id: "transfer_fail",
-        name: "Refused!",
-        desc: result.message,
-        type: "refusal",
-        status: "entering"
-      });
-      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "active" } : null), 500);
-      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "exiting" } : null), 3000);
-      setTimeout(() => setNotification(null), 3500);
+  // Wrappers for Companion Actions
+  const handleCompanionInteract = (action: () => void) => {
+    const canAct = checkCompanionRefusal();
+    if (canAct) {
+      action();
     } else {
-      setNotification({
-        id: "transfer_success",
-        name: "Item Taken",
-        desc: result.message,
-        type: "info",
-        status: "entering"
-      });
-      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "active" } : null), 500);
-      setTimeout(() => setNotification(prev => prev ? { ...prev, status: "exiting" } : null), 3000);
-      setTimeout(() => setNotification(null), 3500);
+      setRefusalModal({ isOpen: true, message: getRefusalText() });
+    }
+  };
+
+  const handleCompanionEquip = (itemId: string, slot: string) => {
+    handleCompanionInteract(() => equipCompanionItem(itemId, slot));
+  };
+
+  const handleCompanionUnequip = (slot: string) => {
+    handleCompanionInteract(() => {
+      unequipCompanionItem(slot);
+      if (slot === "outfit") {
+        setReactionModal({ isOpen: true, message: getOutfitReactionText() });
+      }
+    });
+  };
+
+  // Note: For Take, we keep the notification style? No, user said "remove checks/stopsigns... use grey popup".
+  // So Take should updates too!
+  function handleTakeFromCompanion(itemId: string) {
+    handleCompanionInteract(() => {
+      const isOutfit = itemId === companionEquipment.outfit;
+      const result = transferItemFromCompanion(itemId); // checking inside too, but frontend check first for UX
+      if (result.success) {
+        if (isOutfit) {
+          setReactionModal({ isOpen: true, message: getOutfitReactionText() });
+        }
+        // Success feedback? Maybe small notification or just inventory update.
+        // Existing code used notification. User said remove it logic entirely.
+        // But we need feedback "Item Taken".
+        // I'll leave the success notification for now as "refusal" was the main point.
+        // Actually, logic is: "remove checkmark and stopsign popups".
+        // Stop sign = refusal. Checkmark = success.
+        // So I should remove SUCCESS notification too?
+        // "clicking a greyed out button... will create a grey popup... if rep does meet threshold... function as normal"
+        // Usually "normal" implies silent update or subtle.
+        // I will remove the explicit full screen notification for success/fail and rely on RefusalModal for fail. 
+      }
+    });
+  }
+
+  function confirmCompanionDrop() {
+    if (companionDropTarget) {
+      const isOutfit = companionDropTarget.id === companionEquipment.outfit;
+      dropCompanionItem(companionDropTarget.id);
+      setCompanionDropTarget(null);
+      if (isOutfit) {
+        setReactionModal({ isOpen: true, message: getOutfitReactionText() });
+      }
+    }
+  }
+
+  function confirmCompanionUse() {
+    if (companionUseTarget) {
+      useCompanionItem(companionUseTarget.id);
+      setCompanionUseTarget(null);
+    }
+  }
+
+  function handleTakeCoins() {
+    // This button was also requested to be gated?
+    // "add the equip... to... companion. all buttons... should be greyed out".
+    // "Take Coins" is separate. But probably should follow rule.
+    // I'll apply same logic.
+    const canAct = checkCompanionRefusal();
+    if (canAct) {
+      transferCoinsFromCompanion();
+    } else {
+      setRefusalModal({ isOpen: true, message: getRefusalText() });
     }
   }
 
@@ -200,7 +265,7 @@ export default function Page() {
 
     // Use Consumable
     if (slot === "consumable") {
-      actions.push({ label: "Use", color: "#3399ff", onClick: () => requestUse(item.id!) }); // Blue, calls requestUse now
+      actions.push({ label: "Use", color: "#4d4dff", onClick: () => requestUse(item.id!) }); // Corrected to #4d4dff
     }
 
     // Drop
@@ -213,15 +278,59 @@ export default function Page() {
 
     return actions;
   };
-  // ...
-  // ...
-
 
   const getCompanionItemActions = (item: { id?: string; name: string; count: number }) => {
     if (!item.id) return [];
-    return [
-      { label: "Take", color: "#ffd700", onClick: () => handleTakeFromCompanion(item.id!) } // Yellow
-    ];
+
+    const canAct = checkCompanionRefusal();
+    const greyColor = "#888888";
+    const slot = getItemSlot(item.id);
+    const actions: any[] = [];
+
+    // Equip/Unequip Logic
+    if (slot && slot !== "none" && slot !== "consumable") {
+      // Check against companion equipment!
+      const isEquipped = Object.values(companionEquipment).includes(item.id);
+
+      if (isEquipped) {
+        actions.push({
+          label: "Unequip",
+          color: canAct ? "#9d4dff" : greyColor,
+          onClick: () => handleCompanionUnequip(slot)
+        });
+      } else {
+        actions.push({
+          label: "Equip",
+          color: canAct ? "#4dff4d" : greyColor,
+          onClick: () => handleCompanionEquip(item.id!, slot)
+        });
+      }
+    }
+
+    // Use Consumable
+    if (slot === "consumable") {
+      actions.push({
+        label: "Use",
+        color: canAct ? "#4d4dff" : greyColor,
+        onClick: () => handleCompanionInteract(() => setCompanionUseTarget({ id: item.id!, name: pretty(item.id!) }))
+      });
+    }
+
+    // Drop
+    actions.push({
+      label: "Drop",
+      color: canAct ? "#ff4d4d" : greyColor,
+      onClick: () => handleCompanionInteract(() => setCompanionDropTarget({ id: item.id!, name: pretty(item.id!) }))
+    });
+
+    // Take
+    actions.push({
+      label: "Take",
+      color: canAct ? "#ffd700" : greyColor,
+      onClick: () => handleTakeFromCompanion(item.id!)
+    });
+
+    return actions;
   };
 
 
@@ -302,7 +411,7 @@ export default function Page() {
 
   return (
     <div style={{ height: "100vh", overflowY: "scroll", background: bgColor, color: textColor, transition: "background 0.3s ease, color 0.3s ease" }}>
-      <main style={{ maxWidth: mode === "game" ? 1000 : 720, margin: "0 auto", padding: "40px 16px", width: "100%", boxSizing: "border-box" }}>
+      <main style={{ maxWidth: mode === "game" ? 1200 : 720, margin: "0 auto", padding: "40px 16px", width: "100%", boxSizing: "border-box" }}>
         {mode === "menu" && (
           <StartMenu
             menuView={menuView}
@@ -417,7 +526,7 @@ export default function Page() {
               {isMobileView && showCompanionMenu && (
                 <SideMenu
                   title={companionName}
-                  coins={uiCoins}
+                  coins={companionCoins}
                   stats={companionStats}
                   gender={companionGender}
                   equipment={companionEquipment}
@@ -434,6 +543,7 @@ export default function Page() {
                   description={getCompanionDesc()}
                   onTransfer={undefined} // Handled by getItemActions
                   transferLabel={undefined}
+                  onTakeCoins={handleTakeCoins}
                   getItemActions={getCompanionItemActions}
                 />
               )}
@@ -506,7 +616,7 @@ export default function Page() {
               {!isMobileView && showCompanionMenu && (
                 <SideMenu
                   title={companionName}
-                  coins={uiCoins}
+                  coins={companionCoins}
                   stats={companionStats}
                   gender={companionGender}
                   equipment={companionEquipment}
@@ -523,6 +633,7 @@ export default function Page() {
                   description={getCompanionDesc()}
                   onTransfer={undefined} // Handled by getItemActions
                   transferLabel={undefined}
+                  onTakeCoins={handleTakeCoins}
                   getItemActions={getCompanionItemActions}
                 />
               )}
@@ -539,7 +650,8 @@ export default function Page() {
         message={<>Are you sure you want to give <strong>{transferItem?.name}</strong> to {companionName}?</>}
         subtext="You may not be able to get it back."
         confirmLabel="Give Item"
-        confirmColor="#4d4dff"
+        confirmColor="#ffd700"
+        confirmTextColor="#000"
         onConfirm={confirmTransfer}
         onCancel={() => setTransferItem(null)}
         isDarkMode={isDarkMode}
@@ -565,9 +677,64 @@ export default function Page() {
         message={<>Are you sure you want to use <strong>{useItemTarget?.name}</strong>?</>}
         subtext="Has single use."
         confirmLabel="Use Item"
-        confirmColor="#3399ff"
+        confirmColor="#4d4dff"
         onConfirm={confirmUse}
         onCancel={() => setUseItemTarget(null)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Companion Drop Modal */}
+      <ConfirmationModal
+        isOpen={!!companionDropTarget}
+        title="Drop Item?"
+        message={<>Are you sure you want to drop <strong>{companionDropTarget?.name}</strong> from {companionName}&apos;s inventory?</>}
+        subtext="It will be lost forever."
+        confirmLabel="Drop Item"
+        confirmColor="#ff4d4d"
+        onConfirm={confirmCompanionDrop}
+        onCancel={() => setCompanionDropTarget(null)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Companion Use Modal */}
+      <ConfirmationModal
+        isOpen={!!companionUseTarget}
+        title="Use Item?"
+        message={<>Are you sure you want to use <strong>{companionUseTarget?.name}</strong> on {companionName}?</>}
+        subtext="Has single use."
+        confirmLabel="Use Item"
+        confirmColor="#4d4dff"
+        onConfirm={confirmCompanionUse}
+        onCancel={() => setCompanionUseTarget(null)}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Refusal Modal (Grey) */}
+      <ConfirmationModal
+        isOpen={refusalModal.isOpen}
+        title="Refused"
+        message={<>{refusalModal.message}</>}
+        subtext="You need a higher reputation."
+        confirmLabel="OK"
+        confirmColor="#888888"
+        confirmTextColor="#fff"
+        showCancel={false}
+        onConfirm={() => setRefusalModal({ isOpen: false, message: "" })}
+        onCancel={() => setRefusalModal({ isOpen: false, message: "" })}
+        isDarkMode={isDarkMode}
+      />
+
+      {/* Reaction Modal (Purple) */}
+      <ConfirmationModal
+        isOpen={reactionModal.isOpen}
+        title={`You removed ${companionName}'s outfit.`}
+        message={<>{reactionModal.message}</>}
+        confirmLabel="Continue"
+        confirmColor="#9d4dff"
+        confirmTextColor="#fff"
+        showCancel={false}
+        onConfirm={() => setReactionModal({ isOpen: false, message: "" })}
+        onCancel={() => setReactionModal({ isOpen: false, message: "" })}
         isDarkMode={isDarkMode}
       />
 

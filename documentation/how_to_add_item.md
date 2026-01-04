@@ -97,13 +97,31 @@ Here is the step-by-step process to add a new item to the game.
         -> loot_npc(npc)
     ```
 
-## 2. Update Frontend (`app/page.tsx`)
+## 2. Update Frontend (`app/hooks/useEntityStats.ts`)
 
-1.  **Pretty Name**: Add the mapping to `ITEM_NAMES` so it looks good in the sidebar.
+You need to update three constant objects in `app/hooks/useEntityStats.ts` to ensure the item is displayed correctly and its stats are calculated in the UI (for the stats bar preview).
+
+1.  **Pretty Name**: Add to `ITEM_NAMES`.
     ```typescript
     const ITEM_NAMES: Record<string, string> = {
-      ...
+      // ...
       ring_of_intelligence: "Ring of Intelligence",
+    };
+    ```
+
+2.  **Stats**: Add to `ITEM_STATS`. This is used to preview stats in the sidebar. Use the same values as your Ink logic.
+    ```typescript
+    const ITEM_STATS: Record<string, { STR?: number; CHA?: number; WIT?: number; HP?: number; SP?: number; REP?: number }> = {
+      // ...
+      ring_of_intelligence: { WIT: 2 },
+    };
+    ```
+
+3.  **Slot**: Add to `ITEM_SLOTS`. This determines where the item appears in the equipment list (e.g., "ring", "weapon", "consumable").
+    ```typescript
+    export const ITEM_SLOTS: Record<string, string> = {
+      // ...
+      ring_of_intelligence: "ring",
     };
     ```
 

@@ -224,13 +224,18 @@ export function useEntityStats() {
             setCompanionName(NPC_NAMES[compId] || "Unknown");
             setCompanionGender(NPC_GENDERS[compId] || "other");
 
-            const coinsVar = `${compId.replace("npc_", "")}_coins`;
-            setCompanionCoins(asNumber((s as any).variablesState[coinsVar], 0));
+            setCompanionCoins(asNumber(s.EvaluateFunction("get_npc_coins_current"), 0));
 
             const invVar = `${compId.replace("npc_", "")}_inv`;
             const compInvVal = (s as any).variablesState[invVar];
             const compInvIds = inkListToIds(compInvVal);
-            setCompanionInventory(compInvIds.map(id => ({ id, name: pretty(id), count: 1 })));
+            setCompanionInventory(compInvIds.map(id => {
+                let count = 1;
+                try {
+                    count = asNumber(s.EvaluateFunction("get_npc_item_count_current", [id]), 1);
+                } catch (e) { console.error("Error getting item count for", id, e); }
+                return { id, name: pretty(id), count };
+            }));
 
             const prefix = compId.replace("npc_", "");
             const compWeapon = normalizeItemId(asString((s as any).variablesState[`${prefix}_eq_weapon`], "none"));

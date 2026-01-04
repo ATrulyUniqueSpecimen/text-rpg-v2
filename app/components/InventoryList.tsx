@@ -27,7 +27,7 @@ export function InventoryList({ items, getItemActions }: InventoryListProps) {
                             <div key={item.name} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, background: "rgba(128,128,128,0.1)", padding: "4px 8px", borderRadius: 4 }}>
                                 <span>
                                     {item.name}
-                                    {item.count > 1 && ` (${item.count})`}
+                                    {item.count > 1 && <span style={{ marginLeft: 8, fontWeight: 700, color: "#aaa" }}>x{item.count}</span>}
                                 </span>
                                 <div style={{ display: "flex", gap: 4 }}>
                                     {actions.map((action, idx) => (
@@ -38,11 +38,12 @@ export function InventoryList({ items, getItemActions }: InventoryListProps) {
                                                 background: action.color,
                                                 border: "none",
                                                 borderRadius: 4,
-                                                color: "#fff",
+                                                color: action.color === "#ffd700" ? "#000" : "#fff",
                                                 fontSize: 10,
+                                                fontWeight: action.color === "#ffd700" ? 700 : 400,
                                                 padding: "2px 6px",
                                                 cursor: "pointer",
-                                                opacity: 0.8
+                                                opacity: 0.9
                                             }}
                                             title={action.label}
                                         >
@@ -54,7 +55,8 @@ export function InventoryList({ items, getItemActions }: InventoryListProps) {
                         );
                     })}
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     );
 }
